@@ -1,0 +1,53 @@
+{
+  "total_count": 10,
+  "date_range": {
+    "start": "2023-07-01",
+    "end": "2023-09-30"
+  },
+  "vendor_mix": [
+    {
+      "vendor_id": "VEND-SYDSTEEL",
+      "count": 2,
+      "min_lines_per_invoice": 1,
+      "max_lines_per_invoice": 5,
+      "invoice_number_pattern": null
+    },
+    {
+      "vendor_id": "VEND-BUILDRIGHT",
+      "count": 2,
+      "min_lines_per_invoice": 1,
+      "max_lines_per_invoice": 5,
+      "invoice_number_pattern": null
+    },
+    {
+      "vendor_id": "VEND-PLUMBPERFECT",
+      "count": 2,
+      "min_lines_per_invoice": 1,
+      "max_lines_per_invoice": 5,
+      "invoice_number_pattern": null
+    },
+    {
+      "vendor_id": "VEND-ALLSITE",
+      "count": 2,
+      "min_lines_per_invoice": 1,
+      "max_lines_per_invoice": 5,
+      "invoice_number_pattern": null
+    },
+    {
+      "vendor_id": "VEND-SPARKY",
+      "count": 2,
+      "min_lines_per_invoice": 1,
+      "max_lines_per_invoice": 5,
+      "invoice_number_pattern": null
+    }
+  ],
+  "allow_price_variation": false,
+  "price_variation_pct": 0.1,
+  "currency": "AUD",
+  "status": "AUTHORISED",
+  "business_days_only": true,
+  "no_tax_override": false,
+  "accepted": true,
+  "rejection_reason": null,
+  "default_invoice_number_pattern": "AP-{RUN}-{VENDOR}-{YYYY}{MM}-{SEQ:04d}"
+}

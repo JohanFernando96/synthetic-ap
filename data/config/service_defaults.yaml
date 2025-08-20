@@ -1,0 +1,17 @@
+generator:
+  allow_price_variation: false
+  price_variation_pct: 0.10
+  currency: "AUD"
+  status: "AUTHORISED"
+  business_days_only: true
+
+artifacts:
+  include_meta_json: true
+
+ai:
+  enabled: true
+  model: "gpt-4o-mini"
+  temperature: 0.2
+  max_vendors: 6
+
+force_no_tax: false

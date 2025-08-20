@@ -1,0 +1,25 @@
+{
+  "run_id": "2025-08-20-2020417432",
+  "query": "Generate 3 bills for the Q1 2023",
+  "seed_used": 2020417432,
+  "count": 10,
+  "date_range": {
+    "start": "2023-07-01",
+    "end": "2023-09-30"
+  },
+  "artifacts": {
+    "invoices_parquet": "runs/2025-08-20-2020417432/invoices.parquet",
+    "invoice_lines_parquet": "runs/2025-08-20-2020417432/invoice_lines.parquet",
+    "plan_json": "runs/2025-08-20-2020417432/plan.json",
+    "xero_invoices_json": "runs/2025-08-20-2020417432/xero_invoices.json",
+    "xero_invoices_with_meta_json": "runs/2025-08-20-2020417432/xero_invoices_with_meta.json"
+  },
+  "config_used": {
+    "allow_price_variation": false,
+    "price_variation_pct": 0.1,
+    "currency": "AUD",
+    "status": "AUTHORISED",
+    "business_days_only": true,
+    "no_tax_override": false
+  }
+}

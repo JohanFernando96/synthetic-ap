@@ -1,0 +1,13 @@
+﻿tax_codes:
+  - code: "INPUT"
+    rate: 0.10
+  - code: "EXEMPTEXPENSES"
+    rate: 0.00
+  - code: "BASEXCLUDED"
+    rate: 0.00
+  - code: "OUTPUT"
+    rate: 0.10
+  - code: "EXEMPTOUTPUT"
+    rate: 0.00
+  - code: "GSTONIMPORTS"
+    rate: 0.00

@@ -1,0 +1,432 @@
+{
+  "Invoices": [
+    {
+      "Type": "ACCPAY",
+      "InvoiceNumber": "AP-2025-0-SYDNEYSTEE-202309-0001",
+      "Contact": {
+        "ContactID": "0b49ade6-76ae-40a2-91a4-70ab4929b92e"
+      },
+      "CurrencyCode": "AUD",
+      "Date": "2023-09-27",
+      "DueDate": "2023-10-27",
+      "Status": "AUTHORISED",
+      "Reference": "AP-2025-0-SYDNEY-STE-0001-JT53",
+      "LineItems": [
+        {
+          "Description": "Structural Steel Beam I-200",
+          "Quantity": 4.0,
+          "UnitAmount": 450.0,
+          "AccountCode": "453",
+          "TaxType": "INPUT",
+          "LineAmount": 1800.0
+        },
+        {
+          "Description": "Reinforcing Bar (Rebar) Tonne",
+          "Quantity": 8.0,
+          "UnitAmount": 1800.0,
+          "AccountCode": "453",
+          "TaxType": "INPUT",
+          "LineAmount": 14400.0
+        },
+        {
+          "Description": "Reinforcing Bar (Rebar) Tonne",
+          "Quantity": 7.0,
+          "UnitAmount": 1800.0,
+          "AccountCode": "453",
+          "TaxType": "INPUT",
+          "LineAmount": 12600.0
+        },
+        {
+          "Description": "Reinforcing Bar (Rebar) Tonne",
+          "Quantity": 8.0,
+          "UnitAmount": 1800.0,
+          "AccountCode": "453",
+          "TaxType": "INPUT",
+          "LineAmount": 14400.0
+        },
+        {
+          "Description": "Structural Steel Beam I-200",
+          "Quantity": 9.0,
+          "UnitAmount": 450.0,
+          "AccountCode": "453",
+          "TaxType": "INPUT",
+          "LineAmount": 4050.0
+        }
+      ]
+    },
+    {
+      "Type": "ACCPAY",
+      "InvoiceNumber": "AP-2025-0-SYDNEYSTEE-202309-0002",
+      "Contact": {
+        "ContactID": "0b49ade6-76ae-40a2-91a4-70ab4929b92e"
+      },
+      "CurrencyCode": "AUD",
+      "Date": "2023-09-01",
+      "DueDate": "2023-10-01",
+      "Status": "AUTHORISED",
+      "Reference": "AP-2025-0-SYDNEY-STE-0002-D5CX",
+      "LineItems": [
+        {
+          "Description": "Structural Steel Beam I-200",
+          "Quantity": 9.0,
+          "UnitAmount": 450.0,
+          "AccountCode": "453",
+          "TaxType": "INPUT",
+          "LineAmount": 4050.0
+        },
+        {
+          "Description": "Reinforcing Bar (Rebar) Tonne",
+          "Quantity": 11.0,
+          "UnitAmount": 1800.0,
+          "AccountCode": "453",
+          "TaxType": "INPUT",
+          "LineAmount": 19800.0
+        }
+      ]
+    },
+    {
+      "Type": "ACCPAY",
+      "InvoiceNumber": "AP-2025-0-BUILDRIGHT-202307-0003",
+      "Contact": {
+        "ContactID": "77559e9c-9dcc-4fd0-b6fc-82505c52b75f"
+      },
+      "CurrencyCode": "AUD",
+      "Date": "2023-07-24",
+      "DueDate": "2023-08-23",
+      "Status": "AUTHORISED",
+      "Reference": "AP-2025-0-BUILDRIGHT-0003-38TK",
+      "LineItems": [
+        {
+          "Description": "Ready-Mix Concrete 32MPa (per m³)",
+          "Quantity": 2.0,
+          "UnitAmount": 280.0,
+          "AccountCode": "453",
+          "TaxType": "INPUT",
+          "LineAmount": 560.0
+        },
+        {
+          "Description": "Ready-Mix Concrete 32MPa (per m³)",
+          "Quantity": 10.0,
+          "UnitAmount": 280.0,
+          "AccountCode": "453",
+          "TaxType": "INPUT",
+          "LineAmount": 2800.0
+        },
+        {
+          "Description": "Ready-Mix Concrete 32MPa (per m³)",
+          "Quantity": 8.0,
+          "UnitAmount": 280.0,
+          "AccountCode": "453",
+          "TaxType": "INPUT",
+          "LineAmount": 2240.0
+        },
+        {
+          "Description": "Ready-Mix Concrete 32MPa (per m³)",
+          "Quantity": 2.0,
+          "UnitAmount": 280.0,
+          "AccountCode": "453",
+          "TaxType": "INPUT",
+          "LineAmount": 560.0
+        },
+        {
+          "Description": "Ready-Mix Concrete 32MPa (per m³)",
+          "Quantity": 6.0,
+          "UnitAmount": 280.0,
+          "AccountCode": "453",
+          "TaxType": "INPUT",
+          "LineAmount": 1680.0
+        }
+      ]
+    },
+    {
+      "Type": "ACCPAY",
+      "InvoiceNumber": "AP-2025-0-BUILDRIGHT-202308-0004",
+      "Contact": {
+        "ContactID": "77559e9c-9dcc-4fd0-b6fc-82505c52b75f"
+      },
+      "CurrencyCode": "AUD",
+      "Date": "2023-08-09",
+      "DueDate": "2023-09-08",
+      "Status": "AUTHORISED",
+      "Reference": "AP-2025-0-BUILDRIGHT-0004-ECJU",
+      "LineItems": [
+        {
+          "Description": "Ready-Mix Concrete 32MPa (per m³)",
+          "Quantity": 3.0,
+          "UnitAmount": 280.0,
+          "AccountCode": "453",
+          "TaxType": "INPUT",
+          "LineAmount": 840.0
+        },
+        {
+          "Description": "Ready-Mix Concrete 32MPa (per m³)",
+          "Quantity": 3.0,
+          "UnitAmount": 280.0,
+          "AccountCode": "453",
+          "TaxType": "INPUT",
+          "LineAmount": 840.0
+        },
+        {
+          "Description": "Ready-Mix Concrete 32MPa (per m³)",
+          "Quantity": 7.0,
+          "UnitAmount": 280.0,
+          "AccountCode": "453",
+          "TaxType": "INPUT",
+          "LineAmount": 1960.0
+        },
+        {
+          "Description": "Ready-Mix Concrete 32MPa (per m³)",
+          "Quantity": 12.0,
+          "UnitAmount": 280.0,
+          "AccountCode": "453",
+          "TaxType": "INPUT",
+          "LineAmount": 3360.0
+        },
+        {
+          "Description": "Ready-Mix Concrete 32MPa (per m³)",
+          "Quantity": 11.0,
+          "UnitAmount": 280.0,
+          "AccountCode": "453",
+          "TaxType": "INPUT",
+          "LineAmount": 3080.0
+        }
+      ]
+    },
+    {
+      "Type": "ACCPAY",
+      "InvoiceNumber": "AP-2025-0-PLUMBPERFE-202309-0005",
+      "Contact": {
+        "ContactID": "9c046665-ec2d-4944-9e90-6becd9bc517f"
+      },
+      "CurrencyCode": "AUD",
+      "Date": "2023-09-11",
+      "DueDate": "2023-10-11",
+      "Status": "AUTHORISED",
+      "Reference": "AP-2025-0-PLUMBPERFE-0005-GBKY",
+      "LineItems": [
+        {
+          "Description": "Plumbing Labour (per hour)",
+          "Quantity": 7.0,
+          "UnitAmount": 90.0,
+          "AccountCode": "477",
+          "TaxType": "INPUT",
+          "LineAmount": 630.0
+        },
+        {
+          "Description": "PVC Piping & Fittings",
+          "Quantity": 10.0,
+          "UnitAmount": 2500.0,
+          "AccountCode": "453",
+          "TaxType": "INPUT",
+          "LineAmount": 25000.0
+        }
+      ]
+    },
+    {
+      "Type": "ACCPAY",
+      "InvoiceNumber": "AP-2025-0-PLUMBPERFE-202308-0006",
+      "Contact": {
+        "ContactID": "9c046665-ec2d-4944-9e90-6becd9bc517f"
+      },
+      "CurrencyCode": "AUD",
+      "Date": "2023-08-01",
+      "DueDate": "2023-08-31",
+      "Status": "AUTHORISED",
+      "Reference": "AP-2025-0-PLUMBPERFE-0006-UNMH",
+      "LineItems": [
+        {
+          "Description": "PVC Piping & Fittings",
+          "Quantity": 7.0,
+          "UnitAmount": 2500.0,
+          "AccountCode": "453",
+          "TaxType": "INPUT",
+          "LineAmount": 17500.0
+        },
+        {
+          "Description": "PVC Piping & Fittings",
+          "Quantity": 2.0,
+          "UnitAmount": 2500.0,
+          "AccountCode": "453",
+          "TaxType": "INPUT",
+          "LineAmount": 5000.0
+        },
+        {
+          "Description": "PVC Piping & Fittings",
+          "Quantity": 11.0,
+          "UnitAmount": 2500.0,
+          "AccountCode": "453",
+          "TaxType": "INPUT",
+          "LineAmount": 27500.0
+        }
+      ]
+    },
+    {
+      "Type": "ACCPAY",
+      "InvoiceNumber": "AP-2025-0-ALLSITEREN-202309-0007",
+      "Contact": {
+        "ContactID": "3dee80ad-cca2-4418-93c4-9b64e31b0d2b"
+      },
+      "CurrencyCode": "AUD",
+      "Date": "2023-09-12",
+      "DueDate": "2023-10-12",
+      "Status": "AUTHORISED",
+      "Reference": "AP-2025-0-ALLSITE-RE-0007-XZ4Q",
+      "LineItems": [
+        {
+          "Description": "Concrete Pump Hire (per hour)",
+          "Quantity": 37.0,
+          "UnitAmount": 150.0,
+          "AccountCode": "469",
+          "TaxType": "INPUT",
+          "LineAmount": 5550.0
+        }
+      ]
+    },
+    {
+      "Type": "ACCPAY",
+      "InvoiceNumber": "AP-2025-0-ALLSITEREN-202308-0008",
+      "Contact": {
+        "ContactID": "3dee80ad-cca2-4418-93c4-9b64e31b0d2b"
+      },
+      "CurrencyCode": "AUD",
+      "Date": "2023-08-03",
+      "DueDate": "2023-09-02",
+      "Status": "AUTHORISED",
+      "Reference": "AP-2025-0-ALLSITE-RE-0008-AY2J",
+      "LineItems": [
+        {
+          "Description": "Scaffolding Hire (per week)",
+          "Quantity": 1.0,
+          "UnitAmount": 250.0,
+          "AccountCode": "469",
+          "TaxType": "INPUT",
+          "LineAmount": 250.0
+        },
+        {
+          "Description": "Concrete Pump Hire (per hour)",
+          "Quantity": 7.0,
+          "UnitAmount": 150.0,
+          "AccountCode": "469",
+          "TaxType": "INPUT",
+          "LineAmount": 1050.0
+        },
+        {
+          "Description": "Temporary Fencing (per meter/week)",
+          "Quantity": 40.0,
+          "UnitAmount": 5.5,
+          "AccountCode": "469",
+          "TaxType": "INPUT",
+          "LineAmount": 220.0
+        },
+        {
+          "Description": "Bottled Drinking Water (24pk)",
+          "Quantity": 34.0,
+          "UnitAmount": 15.0,
+          "AccountCode": "429",
+          "TaxType": "EXEMPTEXPENSES",
+          "LineAmount": 510.0
+        },
+        {
+          "Description": "Excavator Hire (per day)",
+          "Quantity": 2.0,
+          "UnitAmount": 800.0,
+          "AccountCode": "469",
+          "TaxType": "INPUT",
+          "LineAmount": 1600.0
+        }
+      ]
+    },
+    {
+      "Type": "ACCPAY",
+      "InvoiceNumber": "AP-2025-0-SPARKYELEC-202308-0009",
+      "Contact": {
+        "ContactID": "eb7b2333-209f-4ca9-a939-bf12e4821c4d"
+      },
+      "CurrencyCode": "AUD",
+      "Date": "2023-08-23",
+      "DueDate": "2023-09-30",
+      "Status": "AUTHORISED",
+      "Reference": "AP-2025-0-SPARKY-ELE-0009-KFH2",
+      "LineItems": [
+        {
+          "Description": "Electrical Fit-out Materials",
+          "Quantity": 4.0,
+          "UnitAmount": 5500.0,
+          "AccountCode": "453",
+          "TaxType": "INPUT",
+          "LineAmount": 22000.0
+        },
+        {
+          "Description": "Electrical Labour (per hour)",
+          "Quantity": 1.0,
+          "UnitAmount": 95.0,
+          "AccountCode": "477",
+          "TaxType": "INPUT",
+          "LineAmount": 95.0
+        },
+        {
+          "Description": "Electrical Fit-out Materials",
+          "Quantity": 4.0,
+          "UnitAmount": 5500.0,
+          "AccountCode": "453",
+          "TaxType": "INPUT",
+          "LineAmount": 22000.0
+        }
+      ]
+    },
+    {
+      "Type": "ACCPAY",
+      "InvoiceNumber": "AP-2025-0-SPARKYELEC-202307-0010",
+      "Contact": {
+        "ContactID": "eb7b2333-209f-4ca9-a939-bf12e4821c4d"
+      },
+      "CurrencyCode": "AUD",
+      "Date": "2023-07-05",
+      "DueDate": "2023-08-31",
+      "Status": "AUTHORISED",
+      "Reference": "AP-2025-0-SPARKY-ELE-0010-3RTF",
+      "LineItems": [
+        {
+          "Description": "Electrical Labour (per hour)",
+          "Quantity": 7.0,
+          "UnitAmount": 95.0,
+          "AccountCode": "477",
+          "TaxType": "INPUT",
+          "LineAmount": 665.0
+        },
+        {
+          "Description": "Electrical Labour (per hour)",
+          "Quantity": 5.0,
+          "UnitAmount": 95.0,
+          "AccountCode": "477",
+          "TaxType": "INPUT",
+          "LineAmount": 475.0
+        },
+        {
+          "Description": "Electrical Fit-out Materials",
+          "Quantity": 1.0,
+          "UnitAmount": 5500.0,
+          "AccountCode": "453",
+          "TaxType": "INPUT",
+          "LineAmount": 5500.0
+        },
+        {
+          "Description": "Electrical Fit-out Materials",
+          "Quantity": 6.0,
+          "UnitAmount": 5500.0,
+          "AccountCode": "453",
+          "TaxType": "INPUT",
+          "LineAmount": 33000.0
+        },
+        {
+          "Description": "Electrical Labour (per hour)",
+          "Quantity": 7.0,
+          "UnitAmount": 95.0,
+          "AccountCode": "477",
+          "TaxType": "INPUT",
+          "LineAmount": 665.0
+        }
+      ]
+    }
+  ]
+}

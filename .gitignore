@@ -1,0 +1,36 @@
+# Environment variables
+.env
+
+# Byte-compiled files
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+venv/
+env/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Logs
+*.log
+
+# Coverage reports
+htmlcov/
+.coverage
+*.cover
+
+# Test results
+*.pytest_cache/
+.tox/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+*.egg
+
+# IDE-specific files
+.vscode/
+.idea/
+.env

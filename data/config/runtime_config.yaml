@@ -1,0 +1,17 @@
+ai:
+  enabled: true
+  model: gpt-4o-mini
+  temperature: 0.15
+  top_p: 1.0
+  max_output_tokens: 1200
+  system_prompt: null
+  max_vendors: 6
+generator:
+  allow_price_variation: false
+  price_variation_pct: 0.1
+  currency: AUD
+  status: AUTHORISED
+  business_days_only: true
+artifacts:
+  include_meta_json: true
+force_no_tax: false

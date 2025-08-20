@@ -1,0 +1,24 @@
+{
+  "run_id": "2025-08-20-1913965145",
+  "query": "Generate 3 unpaid invoices for the Q1 2025",
+  "seed_used": 1913965145,
+  "count": 3,
+  "date_range": {
+    "start": "2025-07-01",
+    "end": "2025-09-30"
+  },
+  "artifacts": {
+    "invoices_parquet": "runs/2025-08-20-1913965145/invoices.parquet",
+    "invoice_lines_parquet": "runs/2025-08-20-1913965145/invoice_lines.parquet",
+    "plan_json": "runs/2025-08-20-1913965145/plan.json",
+    "xero_invoices_json": "runs/2025-08-20-1913965145/xero_invoices.json",
+    "xero_invoices_with_meta_json": "runs/2025-08-20-1913965145/xero_invoices_with_meta.json"
+  },
+  "config_used": {
+    "allow_price_variation": false,
+    "price_variation_pct": 0.1,
+    "currency": "AUD",
+    "status": "AUTHORISED",
+    "business_days_only": true
+  }
+}

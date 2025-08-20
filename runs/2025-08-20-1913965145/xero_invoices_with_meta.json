@@ -1,0 +1,136 @@
+{
+  "Invoices": [
+    {
+      "__meta": {
+        "vendor_id": "VEND-ALLSITE",
+        "contact_id": "3dee80ad-cca2-4418-93c4-9b64e31b0d2b",
+        "contact_account_number": null
+      },
+      "xero": {
+        "Type": "ACCPAY",
+        "Contact": {
+          "ContactID": "3dee80ad-cca2-4418-93c4-9b64e31b0d2b"
+        },
+        "CurrencyCode": "AUD",
+        "LineItems": [
+          {
+            "Description": "Temporary Fencing (per meter/week)",
+            "Quantity": 27.0,
+            "UnitAmount": 5.5,
+            "AccountCode": "469",
+            "TaxType": "INPUT",
+            "LineAmount": 148.5
+          },
+          {
+            "Description": "Concrete Pump Hire (per hour)",
+            "Quantity": 2.0,
+            "UnitAmount": 150.0,
+            "AccountCode": "469",
+            "TaxType": "INPUT",
+            "LineAmount": 300.0
+          },
+          {
+            "Description": "Bottled Drinking Water (24pk)",
+            "Quantity": 10.0,
+            "UnitAmount": 15.0,
+            "AccountCode": "429",
+            "TaxType": "EXEMPTEXPENSES",
+            "LineAmount": 150.0
+          }
+        ],
+        "Date": "2025-07-09",
+        "DueDate": "2025-08-08",
+        "Reference": "AP-2025-0-ALLSITE-RE-0001-BNXK",
+        "Status": "AUTHORISED"
+      }
+    },
+    {
+      "__meta": {
+        "vendor_id": "VEND-ALLSITE",
+        "contact_id": "3dee80ad-cca2-4418-93c4-9b64e31b0d2b",
+        "contact_account_number": null
+      },
+      "xero": {
+        "Type": "ACCPAY",
+        "Contact": {
+          "ContactID": "3dee80ad-cca2-4418-93c4-9b64e31b0d2b"
+        },
+        "CurrencyCode": "AUD",
+        "LineItems": [
+          {
+            "Description": "Concrete Pump Hire (per hour)",
+            "Quantity": 7.0,
+            "UnitAmount": 150.0,
+            "AccountCode": "469",
+            "TaxType": "INPUT",
+            "LineAmount": 1050.0
+          },
+          {
+            "Description": "Temporary Fencing (per meter/week)",
+            "Quantity": 14.0,
+            "UnitAmount": 5.5,
+            "AccountCode": "469",
+            "TaxType": "INPUT",
+            "LineAmount": 77.0
+          },
+          {
+            "Description": "Bottled Drinking Water (24pk)",
+            "Quantity": 13.0,
+            "UnitAmount": 15.0,
+            "AccountCode": "429",
+            "TaxType": "EXEMPTEXPENSES",
+            "LineAmount": 195.0
+          },
+          {
+            "Description": "Scaffolding Hire (per week)",
+            "Quantity": 6.0,
+            "UnitAmount": 250.0,
+            "AccountCode": "469",
+            "TaxType": "INPUT",
+            "LineAmount": 1500.0
+          }
+        ],
+        "Date": "2025-09-10",
+        "DueDate": "2025-10-10",
+        "Reference": "AP-2025-0-ALLSITE-RE-0002-YRJW",
+        "Status": "AUTHORISED"
+      }
+    },
+    {
+      "__meta": {
+        "vendor_id": "VEND-PLUMBPERFECT",
+        "contact_id": "9c046665-ec2d-4944-9e90-6becd9bc517f",
+        "contact_account_number": null
+      },
+      "xero": {
+        "Type": "ACCPAY",
+        "Contact": {
+          "ContactID": "9c046665-ec2d-4944-9e90-6becd9bc517f"
+        },
+        "CurrencyCode": "AUD",
+        "LineItems": [
+          {
+            "Description": "PVC Piping & Fittings",
+            "Quantity": 7.0,
+            "UnitAmount": 2500.0,
+            "AccountCode": "453",
+            "TaxType": "INPUT",
+            "LineAmount": 17500.0
+          },
+          {
+            "Description": "Plumbing Labour (per hour)",
+            "Quantity": 1.0,
+            "UnitAmount": 90.0,
+            "AccountCode": "477",
+            "TaxType": "INPUT",
+            "LineAmount": 90.0
+          }
+        ],
+        "Date": "2025-09-05",
+        "DueDate": "2025-10-05",
+        "Reference": "AP-2025-0-PLUMBPERFE-0003-2A3U",
+        "Status": "AUTHORISED"
+      }
+    }
+  ]
+}

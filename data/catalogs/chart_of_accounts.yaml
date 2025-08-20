@@ -1,0 +1,120 @@
+accounts:
+  - code: "400"
+    name: "Advertising"
+    type: "EXPENSE"
+    tax_code: "INPUT"
+
+  - code: "404"
+    name: "Bank Fees"
+    type: "EXPENSE"
+    tax_code: "EXEMPTEXPENSES"
+
+  - code: "408"
+    name: "Cleaning"
+    type: "EXPENSE"
+    tax_code: "INPUT"
+
+  - code: "412"
+    name: "Consulting & Accounting"
+    type: "EXPENSE"
+    tax_code: "INPUT"
+
+  - code: "416"
+    name: "Depreciation"
+    type: "EXPENSE"
+    tax_code: "BASEXCLUDED"
+
+  - code: "420"
+    name: "Entertainment"
+    type: "EXPENSE"
+    tax_code: "EXEMPTEXPENSES"
+
+  - code: "425"
+    name: "Freight & Courier"
+    type: "EXPENSE"
+    tax_code: "INPUT"
+
+  - code: "429"
+    name: "General Expenses"
+    type: "EXPENSE"
+    tax_code: "INPUT"
+
+  - code: "433"
+    name: "Insurance"
+    type: "EXPENSE"
+    tax_code: "INPUT"
+
+  - code: "437"
+    name: "Interest Expense"
+    type: "EXPENSE"
+    tax_code: "EXEMPTEXPENSES"
+
+  - code: "441"
+    name: "Legal expenses"
+    type: "EXPENSE"
+    tax_code: "INPUT"
+
+  - code: "445"
+    name: "Light, Power, Heating"
+    type: "EXPENSE"
+    tax_code: "INPUT"
+
+  - code: "449"
+    name: "Motor Vehicle Expenses"
+    type: "EXPENSE"
+    tax_code: "INPUT"
+
+  - code: "453"
+    name: "Office Expenses"
+    type: "EXPENSE"
+    tax_code: "INPUT"
+
+  - code: "461"
+    name: "Printing & Stationery"
+    type: "EXPENSE"
+    tax_code: "INPUT"
+
+  - code: "469"
+    name: "Rent"
+    type: "EXPENSE"
+    tax_code: "INPUT"
+
+  - code: "473"
+    name: "Repairs and Maintenance"
+    type: "EXPENSE"
+    tax_code: "INPUT"
+
+  - code: "477"
+    name: "Wages and Salaries"
+    type: "EXPENSE"
+    tax_code: "BASEXCLUDED"
+
+  - code: "478"
+    name: "Superannuation"
+    type: "EXPENSE"
+    tax_code: "BASEXCLUDED"
+
+  - code: "485"
+    name: "Subscriptions"
+    type: "EXPENSE"
+    tax_code: "INPUT"
+
+  - code: "489"
+    name: "Telephone & Internet"
+    type: "EXPENSE"
+    tax_code: "INPUT"
+
+  - code: "493"
+    name: "Travel - National"
+    type: "EXPENSE"
+    tax_code: "INPUT"
+
+  - code: "494"
+    name: "Travel - International"
+    type: "EXPENSE"
+    tax_code: "EXEMPTEXPENSES"
+
+  - code: "505"
+    name: "Income Tax Expense"
+    type: "EXPENSE"
+    tax_code: "BASEXCLUDED"
