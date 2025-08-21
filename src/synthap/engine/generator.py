@@ -32,6 +32,7 @@ class Invoice:
     currency: str
     status: str
     reference: str
+    invoice_number: str
     lines: List[InvoiceLine]
 
 def q2(v: float | Decimal) -> Money:
@@ -79,6 +80,7 @@ def generate_from_plan(
     items_by_vendor_cache: dict[str, List[Item]] = {}
 
     seq = 0
+    inv_seq_by_vendor: dict[str, int] = {}
     for vp in plan.vendor_mix:
         if vp.count <= 0:
             continue
@@ -113,6 +115,14 @@ def generate_from_plan(
             ref_suffix = "".join(rng.choice("ABCDEFGHJKLMNPQRSTUVWXYZ23456789") for _ in range(4))
             reference = f"AP-{run_id[:6]}-{slugify(vendor.name)[:10].upper()}-{seq:04d}-{ref_suffix}"
 
+            inv_seq = inv_seq_by_vendor.get(vendor.id)
+            if inv_seq is None:
+                inv_seq = rng.randint(1000, 9999)
+            inv_seq += 1
+            inv_seq_by_vendor[vendor.id] = inv_seq
+            prefix = vendor.id.replace("VEND-", "")
+            invoice_number = f"{prefix}-{issue.year}{issue.month:02d}-{inv_seq:04d}"
+
             invoices.append(Invoice(
                 vendor_id=vendor.id,
                 contact_id=vendor.xero_contact_id,
@@ -122,6 +132,7 @@ def generate_from_plan(
                 currency=plan.currency or "AUD",
                 status=plan.status or "AUTHORISED",
                 reference=reference,
+                invoice_number=invoice_number,
                 lines=lines,
             ))
 
@@ -141,6 +152,25 @@ def generate_from_plan(
             lines.append(InvoiceLine(it.name, Decimal(qty), unit, it.account_code, it.tax_code, line_amt, it.code))
         ref_suffix = "".join(rng.choice("ABCDEFGHJKLMNPQRSTUVWXYZ23456789") for _ in range(4))
         reference = f"AP-{run_id[:6]}-{slugify(vendor.name)[:10].upper()}-{seq:04d}-{ref_suffix}"
-        invoices.append(Invoice(vendor.id, vendor.xero_contact_id, getattr(vendor, "xero_account_number", None),
-                                issue, due, plan.currency or "AUD", plan.status or "AUTHORISED", reference, lines))
+        inv_seq = inv_seq_by_vendor.get(vendor.id)
+        if inv_seq is None:
+            inv_seq = rng.randint(1000, 9999)
+        inv_seq += 1
+        inv_seq_by_vendor[vendor.id] = inv_seq
+        prefix = vendor.id.replace("VEND-", "")
+        invoice_number = f"{prefix}-{issue.year}{issue.month:02d}-{inv_seq:04d}"
+        invoices.append(
+            Invoice(
+                vendor.id,
+                vendor.xero_contact_id,
+                getattr(vendor, "xero_account_number", None),
+                issue,
+                due,
+                plan.currency or "AUD",
+                plan.status or "AUTHORISED",
+                reference,
+                invoice_number,
+                lines,
+            )
+        )
     return invoices

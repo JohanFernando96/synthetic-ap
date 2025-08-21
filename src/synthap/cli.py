@@ -234,6 +234,7 @@ def insert(
                 "Date": head["date"],
                 "DueDate": head["due_date"],
                 "Reference": ref,
+                "InvoiceNumber": head.get("invoice_number", ref),
                 "Status": head["status"],
             }
         )

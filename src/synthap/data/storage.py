@@ -14,6 +14,7 @@ def to_rows(invoices: List[Invoice]) -> tuple[pd.DataFrame, pd.DataFrame]:
             "currency": inv.currency,
             "status": inv.status,
             "reference": inv.reference,
+            "invoice_number": inv.invoice_number,
         })
         for ln in inv.lines:
             line_rows.append({

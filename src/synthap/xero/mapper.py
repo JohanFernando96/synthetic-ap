@@ -1,15 +1,13 @@
 from __future__ import annotations
-from typing import Dict, Any
-from ..engine.generator import Invoice, InvoiceLine
+from typing import Dict, Any, TYPE_CHECKING
 
-def map_invoice(inv: Invoice) -> Dict[str, Any]:
+if TYPE_CHECKING:
+    from ..engine.generator import Invoice, InvoiceLine
+
+def map_invoice(inv: "Invoice") -> Dict[str, Any]:
     return {
         "Type": "ACCPAY",
-        # Use a custom invoice number if provided; otherwise fall back to the
-        # reference we generate for each invoice. This keeps `generate` working
-        # even when the Invoice model doesn't include an explicit
-        # `invoice_number` field.
-        "InvoiceNumber": getattr(inv, "invoice_number", inv.reference),
+        "InvoiceNumber": inv.invoice_number,
         "Contact": {"ContactID": inv.contact_id},
         "CurrencyCode": inv.currency,
         "Date": inv.date.isoformat(),
