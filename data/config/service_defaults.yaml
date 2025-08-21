@@ -13,5 +13,7 @@ ai:
   model: "gpt-4o-mini"
   temperature: 0.2
   max_vendors: 6
+  line_item_description_enabled: false
+  line_item_description_prompt: "Write a short description for invoice line item '{item_name}'."
 
 force_no_tax: false

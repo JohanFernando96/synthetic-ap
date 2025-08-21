@@ -42,31 +42,6 @@ class RuntimeConfig(BaseModel):
     force_no_tax: bool = False
 
 
-_DEFAULT_YAML = """\
-ai:
-  enabled: true
-  model: gpt-4o-mini
-  temperature: 0.15
-  top_p: 1.0
-  max_output_tokens: 1200
-  system_prompt:
-  max_vendors: 6
-  line_item_description_enabled: false
-  line_item_description_prompt: "Write a short description for invoice line item '{item_name}'."
-
-generator:
-  allow_price_variation: false
-  price_variation_pct: 0.10
-  currency: AUD
-  status: AUTHORISED
-  business_days_only: true
-
-artifacts:
-  include_meta_json: true
-force_no_tax: false
-"""
-
-
 def _config_dir(base_dir: str) -> Path:
     p = Path(base_dir) / "config"
     p.mkdir(parents=True, exist_ok=True)
@@ -101,13 +76,8 @@ def _deep_merge(a: dict[str, Any], b: dict[str, Any]) -> dict[str, Any]:
 
 
 def load_runtime_config(base_dir: str) -> RuntimeConfig:
-    runtime_path = _runtime_path(base_dir)
-    if not runtime_path.exists():
-        runtime_path.write_text(_DEFAULT_YAML, encoding="utf-8")
-
-    defaults = _load_yaml(_defaults_path(base_dir))  # may be {}
-    runtime = _load_yaml(runtime_path)
-
+    defaults = _load_yaml(_defaults_path(base_dir))
+    runtime = _load_yaml(_runtime_path(base_dir))
     merged = _deep_merge(defaults, runtime)
     return RuntimeConfig(**merged)
 
