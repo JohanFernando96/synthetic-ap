@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional, Any, Dict
+from typing import Any
 
 import yaml
 from pydantic import BaseModel, Field
@@ -15,8 +15,12 @@ class AIConfig(BaseModel):
     temperature: float = 0.15
     top_p: float = 1.0
     max_output_tokens: int = 1200
-    system_prompt: Optional[str] = None
+    system_prompt: str | None = None
     max_vendors: int = 6
+    line_item_description_enabled: bool = False
+    line_item_description_prompt: str = (
+        "Write a short description for invoice line item '{item_name}'."
+    )
 
 
 class GeneratorCfg(BaseModel):
@@ -47,6 +51,8 @@ ai:
   max_output_tokens: 1200
   system_prompt:
   max_vendors: 6
+  line_item_description_enabled: false
+  line_item_description_prompt: "Write a short description for invoice line item '{item_name}'."
 
 generator:
   allow_price_variation: false
@@ -76,15 +82,15 @@ def _defaults_path(base_dir: str) -> Path:
     return _config_dir(base_dir) / "service_defaults.yaml"
 
 
-def _load_yaml(path: Path) -> Dict[str, Any]:
+def _load_yaml(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         data = yaml.safe_load(f)
     return data or {}
 
 
-def _deep_merge(a: Dict[str, Any], b: Dict[str, Any]) -> Dict[str, Any]:
+def _deep_merge(a: dict[str, Any], b: dict[str, Any]) -> dict[str, Any]:
     out = dict(a)
     for k, v in b.items():
         if isinstance(v, dict) and isinstance(out.get(k), dict):
@@ -99,14 +105,14 @@ def load_runtime_config(base_dir: str) -> RuntimeConfig:
     if not runtime_path.exists():
         runtime_path.write_text(_DEFAULT_YAML, encoding="utf-8")
 
-    defaults = _load_yaml(_defaults_path(base_dir))   # may be {}
+    defaults = _load_yaml(_defaults_path(base_dir))  # may be {}
     runtime = _load_yaml(runtime_path)
 
     merged = _deep_merge(defaults, runtime)
     return RuntimeConfig(**merged)
 
 
-def save_runtime_config(cfg: RuntimeConfig, base_dir: Optional[str] = None) -> None:
+def save_runtime_config(cfg: RuntimeConfig, base_dir: str | None = None) -> None:
     base_dir = base_dir or settings.data_dir
     runtime_path = _runtime_path(base_dir)
     raw = cfg.model_dump()
