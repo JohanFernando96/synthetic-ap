@@ -7,6 +7,7 @@ This project generates synthetic accounts payable invoices for testing and demos
 To have invoice lines use realistic descriptions rather than the raw catalog item
 names, enable the feature in `data/config/runtime_config.yaml`:
 
+
 ```yaml
 ai:
   line_item_description_enabled: true
