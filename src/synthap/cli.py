@@ -98,7 +98,7 @@ def generate(
       - runs/<run_id>/generation_report.json
     """
     cat = load_catalogs(settings.data_dir)
-    _ = load_runtime_config(settings.data_dir)  # ensure config is loadable
+    cfg = load_runtime_config(settings.data_dir)
 
     if seed is None:
         seed = secrets.randbits(32)
@@ -119,7 +119,13 @@ def generate(
     run_id = slugify(f"{date.today().isoformat()}-{seed}")[:24]
 
     # 2) Generate from plan
-    invoices = generate_from_plan(cat=cat, plan=plan, run_id=run_id, seed=seed)
+    invoices = generate_from_plan(
+        cat=cat,
+        plan=plan,
+        run_id=run_id,
+        seed=seed,
+        force_no_tax=cfg.force_no_tax,
+    )
 
     # 3) Validate business rules
     validate_invoices(cat, invoices)
@@ -137,7 +143,7 @@ def generate(
     xero_payload = {"Invoices": [map_invoice(inv) for inv in invoices]}
     write_json(xero_payload, base / "xero_invoices.json")
 
-    if load_runtime_config(settings.data_dir).artifacts.include_meta_json:
+    if cfg.artifacts.include_meta_json:
         meta = []
         for inv in invoices:
             meta.append(
