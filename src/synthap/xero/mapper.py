@@ -1,11 +1,13 @@
 from __future__ import annotations
-from typing import Dict, Any
-from ..engine.generator import Invoice, InvoiceLine
+from typing import Dict, Any, TYPE_CHECKING
 
-def map_invoice(inv: Invoice) -> Dict[str, Any]:
+if TYPE_CHECKING:
+    from ..engine.generator import Invoice, InvoiceLine
+
+def map_invoice(inv: "Invoice") -> Dict[str, Any]:
     return {
         "Type": "ACCPAY",
-        "InvoiceNumber": inv.invoice_number,  # NEW
+        "InvoiceNumber": inv.invoice_number,
         "Contact": {"ContactID": inv.contact_id},
         "CurrencyCode": inv.currency,
         "Date": inv.date.isoformat(),

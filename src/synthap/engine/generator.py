@@ -32,6 +32,7 @@ class Invoice:
     currency: str
     status: str
     reference: str
+    invoice_number: str
     lines: List[InvoiceLine]
 
 def q2(v: float | Decimal) -> Money:
@@ -62,6 +63,7 @@ def generate_from_plan(
     plan: Plan,
     run_id: str,
     seed: int,
+    force_no_tax: bool = False,
 ) -> List[Invoice]:
     rng = random.Random(seed)
 
@@ -79,6 +81,7 @@ def generate_from_plan(
     items_by_vendor_cache: dict[str, List[Item]] = {}
 
     seq = 0
+    inv_seq_by_vendor: dict[str, int] = {}
     for vp in plan.vendor_mix:
         if vp.count <= 0:
             continue
@@ -100,18 +103,27 @@ def generate_from_plan(
                     it.unit_price * (1 + (rng.random()*2-1) * float(plan.price_variation_pct or 0.0))
                 )
                 line_amt = q2(Decimal(qty) * unit)
+                tax_code = "EXEMPTEXPENSES" if force_no_tax else it.tax_code
                 lines.append(InvoiceLine(
                     description=it.name,
                     quantity=Decimal(qty),
                     unit_amount=unit,
                     account_code=it.account_code,
-                    tax_type=it.tax_code,
+                    tax_type=tax_code,
                     line_amount=line_amt,
                     item_code=it.code,
                 ))
 
             ref_suffix = "".join(rng.choice("ABCDEFGHJKLMNPQRSTUVWXYZ23456789") for _ in range(4))
             reference = f"AP-{run_id[:6]}-{slugify(vendor.name)[:10].upper()}-{seq:04d}-{ref_suffix}"
+
+            inv_seq = inv_seq_by_vendor.get(vendor.id)
+            if inv_seq is None:
+                inv_seq = rng.randint(1000, 9999)
+            inv_seq += 1
+            inv_seq_by_vendor[vendor.id] = inv_seq
+            prefix = vendor.id.replace("VEND-", "")
+            invoice_number = f"{prefix}-{issue.year}{issue.month:02d}-{inv_seq:04d}"
 
             invoices.append(Invoice(
                 vendor_id=vendor.id,
@@ -122,6 +134,7 @@ def generate_from_plan(
                 currency=plan.currency or "AUD",
                 status=plan.status or "AUTHORISED",
                 reference=reference,
+                invoice_number=invoice_number,
                 lines=lines,
             ))
 
@@ -138,9 +151,29 @@ def generate_from_plan(
             qty = _qty_for_item(it.code, rng)
             unit = q2(it.unit_price)
             line_amt = q2(Decimal(qty) * unit)
-            lines.append(InvoiceLine(it.name, Decimal(qty), unit, it.account_code, it.tax_code, line_amt, it.code))
+            tax_code = "EXEMPTEXPENSES" if force_no_tax else it.tax_code
+            lines.append(InvoiceLine(it.name, Decimal(qty), unit, it.account_code, tax_code, line_amt, it.code))
         ref_suffix = "".join(rng.choice("ABCDEFGHJKLMNPQRSTUVWXYZ23456789") for _ in range(4))
         reference = f"AP-{run_id[:6]}-{slugify(vendor.name)[:10].upper()}-{seq:04d}-{ref_suffix}"
-        invoices.append(Invoice(vendor.id, vendor.xero_contact_id, getattr(vendor, "xero_account_number", None),
-                                issue, due, plan.currency or "AUD", plan.status or "AUTHORISED", reference, lines))
+        inv_seq = inv_seq_by_vendor.get(vendor.id)
+        if inv_seq is None:
+            inv_seq = rng.randint(1000, 9999)
+        inv_seq += 1
+        inv_seq_by_vendor[vendor.id] = inv_seq
+        prefix = vendor.id.replace("VEND-", "")
+        invoice_number = f"{prefix}-{issue.year}{issue.month:02d}-{inv_seq:04d}"
+        invoices.append(
+            Invoice(
+                vendor.id,
+                vendor.xero_contact_id,
+                getattr(vendor, "xero_account_number", None),
+                issue,
+                due,
+                plan.currency or "AUD",
+                plan.status or "AUTHORISED",
+                reference,
+                invoice_number,
+                lines,
+            )
+        )
     return invoices

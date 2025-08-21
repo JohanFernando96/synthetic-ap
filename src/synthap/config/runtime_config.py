@@ -35,6 +35,7 @@ class RuntimeConfig(BaseModel):
     ai: AIConfig = Field(default_factory=AIConfig)
     generator: GeneratorCfg = Field(default_factory=GeneratorCfg)
     artifacts: ArtifactsCfg = Field(default_factory=ArtifactsCfg)
+    force_no_tax: bool = False
 
 
 _DEFAULT_YAML = """\
@@ -56,6 +57,7 @@ generator:
 
 artifacts:
   include_meta_json: true
+force_no_tax: false
 """
 
 

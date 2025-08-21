@@ -98,7 +98,7 @@ def generate(
       - runs/<run_id>/generation_report.json
     """
     cat = load_catalogs(settings.data_dir)
-    _ = load_runtime_config(settings.data_dir)  # ensure config is loadable
+    cfg = load_runtime_config(settings.data_dir)
 
     if seed is None:
         seed = secrets.randbits(32)
@@ -119,7 +119,13 @@ def generate(
     run_id = slugify(f"{date.today().isoformat()}-{seed}")[:24]
 
     # 2) Generate from plan
-    invoices = generate_from_plan(cat=cat, plan=plan, run_id=run_id, seed=seed)
+    invoices = generate_from_plan(
+        cat=cat,
+        plan=plan,
+        run_id=run_id,
+        seed=seed,
+        force_no_tax=cfg.force_no_tax,
+    )
 
     # 3) Validate business rules
     validate_invoices(cat, invoices)
@@ -137,7 +143,7 @@ def generate(
     xero_payload = {"Invoices": [map_invoice(inv) for inv in invoices]}
     write_json(xero_payload, base / "xero_invoices.json")
 
-    if load_runtime_config(settings.data_dir).artifacts.include_meta_json:
+    if cfg.artifacts.include_meta_json:
         meta = []
         for inv in invoices:
             meta.append(
@@ -234,6 +240,7 @@ def insert(
                 "Date": head["date"],
                 "DueDate": head["due_date"],
                 "Reference": ref,
+                "InvoiceNumber": head.get("invoice_number", ref),
                 "Status": head["status"],
             }
         )
@@ -247,11 +254,31 @@ def insert(
     async def _insert():
         batch_size = 50
         total_ok, total_fail = 0, 0
+        invoice_records = []
         for i in range(0, len(payloads), batch_size):
             batch = payloads[i : i + batch_size]
             try:
-                await post_invoices(batch)
-                total_ok += len(batch)
+                resp = await post_invoices(batch)
+                batch_invoices = resp.get("Invoices", [])
+                total_ok += len(batch_invoices)
+                for inv in batch_invoices:
+                    ref = inv.get("Reference")
+                    vendor = None
+                    if ref is not None:
+                        match = inv_df[inv_df["reference"] == ref]
+                        if not match.empty:
+                            vendor = match.iloc[0].get("vendor_id")
+                    invoice_records.append(
+                        {
+                            "InvoiceID": inv.get("InvoiceID"),
+                            "InvoiceNumber": inv.get("InvoiceNumber"),
+                            "Vendor": vendor,
+                            "Date": inv.get("Date"),
+                            "DueDate": inv.get("DueDate"),
+                            "Total": inv.get("Total"),
+                            "AmountDue": inv.get("AmountDue"),
+                        }
+                    )
             except Exception as e:
                 total_fail += len(batch)
                 typer.echo(f"Batch {i//batch_size} failed: {e}")
@@ -261,6 +288,7 @@ def insert(
             "inserted_failed": total_fail,
         }
         write_json(report, base / "insertion_report.json")
+        write_json(invoice_records, base / "invoice_report.json")
         typer.echo(f"[{run_id}] Inserted: {total_ok}, Failed: {total_fail}. Report saved.")
 
     asyncio.run(_insert())
