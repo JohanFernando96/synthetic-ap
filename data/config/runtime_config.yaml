@@ -6,6 +6,8 @@ ai:
   max_output_tokens: 1200
   system_prompt: null
   max_vendors: 6
+  line_item_description_enabled: false
+  line_item_description_prompt: "Write a short description for invoice line item '{item_name}'."
 generator:
   allow_price_variation: false
   price_variation_pct: 0.1
