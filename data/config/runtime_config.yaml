@@ -1,13 +1,13 @@
 ai:
   enabled: true
-  model: gpt-4o-mini
+  model: gpt-4o
   temperature: 0.15
   top_p: 1.0
   max_output_tokens: 1200
   system_prompt: null
   max_vendors: 6
-  line_item_description_enabled: false
-  line_item_description_prompt: "Write a short description for invoice line item '{item_name}'."
+  line_item_description_enabled: true
+  line_item_description_prompt: "Write a concise, single-line invoice item description for: '{item_name}', combining quantity, size, and product name naturally without using labels or categories."
 generator:
   allow_price_variation: false
   price_variation_pct: 0.1
@@ -16,4 +16,4 @@ generator:
   business_days_only: true
 artifacts:
   include_meta_json: true
-force_no_tax: false
+force_no_tax: true

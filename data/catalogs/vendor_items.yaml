@@ -1,9 +1,9 @@
 vendor_items:
   - vendor_id: "VEND-ALLSITE"
-    item_codes: ["ASR-EXC","ASR-FENCE","ASR-SCAF","ASR-WATER","BC-PUMP"]
+    item_codes: ["ASR-EXC","ASR-FENCE","ASR-SCAF","ASR-WATER"]
 
   - vendor_id: "VEND-BUILDRIGHT"
-    item_codes: ["BC-050"]
+    item_codes: ["BC-050","BC-PUMP"]
 
   - vendor_id: "VEND-PLUMBPERFECT"
     item_codes: ["PP-LAB","PP-PIPE"]
