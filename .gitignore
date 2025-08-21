@@ -34,3 +34,4 @@ dist/
 .vscode/
 .idea/
 .env
+/runs/
