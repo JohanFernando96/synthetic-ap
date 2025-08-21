@@ -5,7 +5,11 @@ from ..engine.generator import Invoice, InvoiceLine
 def map_invoice(inv: Invoice) -> Dict[str, Any]:
     return {
         "Type": "ACCPAY",
-        "InvoiceNumber": inv.invoice_number,  # NEW
+        # Use a custom invoice number if provided; otherwise fall back to the
+        # reference we generate for each invoice. This keeps `generate` working
+        # even when the Invoice model doesn't include an explicit
+        # `invoice_number` field.
+        "InvoiceNumber": getattr(inv, "invoice_number", inv.reference),
         "Contact": {"ContactID": inv.contact_id},
         "CurrencyCode": inv.currency,
         "Date": inv.date.isoformat(),

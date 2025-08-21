@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field
 
@@ -10,7 +12,7 @@ class Settings(BaseSettings):
     xero_client_secret: str = Field(alias="XERO_CLIENT_SECRET")
     xero_redirect_uri: str = Field(alias="XERO_REDIRECT_URI")
     xero_scopes: str = Field(alias="XERO_SCOPES")
-    xero_tenant_id: str = Field(alias="XERO_TENANT_ID")
+    xero_tenant_id: Optional[str] = Field(alias="XERO_TENANT_ID", default=None)
 
     # Service
     timezone: str = Field(default="Australia/Melbourne", alias="TIMEZONE")
