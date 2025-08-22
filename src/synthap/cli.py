@@ -10,6 +10,7 @@ from typing import Optional
 import pandas as pd
 import typer
 from slugify import slugify
+from tenacity import RetryError
 
 from .config.settings import settings
 from .config.runtime_config import load_runtime_config
@@ -301,6 +302,8 @@ def insert(
                 resp = await post_payments(payments)
                 payment_records = resp.get("Payments", [])
                 typer.echo(f"[{run_id}] Paid {len(payment_records)} invoices.")
+            except RetryError as e:
+                typer.echo(f"Payment batch failed: {e.last_attempt.exception()}")
             except Exception as e:
                 typer.echo(f"Payment batch failed: {e}")
         else:
