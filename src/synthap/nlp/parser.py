@@ -20,6 +20,8 @@ class ParsedQuery:
     # Optional hints (not used by Stage-1 generator but safe to expose)
     min_lines_per_invoice: Optional[int] = None
     max_lines_per_invoice: Optional[int] = None
+    pay_count: Optional[int] = None
+    pay_all: bool = False
 
 COUNT_PATTERNS = [
     r"\bgenerate\s+(\d+)\b",
@@ -37,6 +39,19 @@ LINE_RANGE_PATTERNS = [
     r"\bwith\s+between\s+(\d+)\s+and\s+(\d+)\s+lines?\b",
     r"\bwith\s+(\d+)\s+to\s+(\d+)\s+line\s+items?\b",
     r"\bwith\s+(\d+)\s+line\s+items?\b",  # exact count fallback
+]
+
+PAY_COUNT_PATTERNS = [
+    r"pay for (\d+)",
+    r"pay (\d+)",
+    r"pay for (\d+) bills?",
+    r"pay (\d+) bills?",
+]
+
+PAY_ALL_PATTERNS = [
+    r"pay for all",
+    r"pay all",
+    r"pay every(thing| bill)",
 ]
 
 def _extract_int(patterns: list[str], text: str) -> Optional[int]:
@@ -70,6 +85,11 @@ def _extract_line_range(text: str) -> tuple[Optional[int], Optional[int]]:
                 return n, n
     return None, None
 
+def _extract_pay_info(text: str) -> tuple[Optional[int], bool]:
+    count = _extract_int(PAY_COUNT_PATTERNS, text)
+    all_flag = any(re.search(p, text, flags=re.IGNORECASE) for p in PAY_ALL_PATTERNS)
+    return count, all_flag
+
 def parse_nlp_to_query(text: str, today: date) -> ParsedQuery:
     t = text.strip()
     count = _extract_int(COUNT_PATTERNS, t) or 10
@@ -79,6 +99,7 @@ def parse_nlp_to_query(text: str, today: date) -> ParsedQuery:
 
     vendor_name = _extract_vendor(t)
     min_lines, max_lines = _extract_line_range(t)
+    pay_count, pay_all = _extract_pay_info(t)
 
     return ParsedQuery(
         total_count=count,
@@ -86,4 +107,6 @@ def parse_nlp_to_query(text: str, today: date) -> ParsedQuery:
         vendor_name=vendor_name,
         min_lines_per_invoice=min_lines,
         max_lines_per_invoice=max_lines,
+        pay_count=pay_count,
+        pay_all=pay_all,
     )
