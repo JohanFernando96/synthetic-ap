@@ -31,6 +31,7 @@ def generate_payments(
     if not pay_all:
         if pay_count is None:
             # pick at least one invoice when paying a random subset
+
             pay_count = rng.randint(1, len(records))
         pay_count = max(0, min(pay_count, len(records)))
         records = rng.sample(records, pay_count) if pay_count else []

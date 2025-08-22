@@ -285,7 +285,6 @@ def insert(
             except Exception as e:
                 total_fail += len(batch)
                 typer.echo(f"Batch {i//batch_size} failed: {e}")
-
         # Persist invoice data before attempting payments so a subsequent
         # payment run can read the file directly.
         inv_report_path = base / "invoice_report.json"
@@ -305,6 +304,7 @@ def insert(
             except Exception:
                 pass
 
+
         # Use the saved invoice report as the source of invoice IDs
         try:
             saved_records = json.loads(inv_report_path.read_text()).get("invoices", [])
@@ -318,6 +318,7 @@ def insert(
             account_code=settings.xero_payment_account_code,
         )
 
+
         payment_records = []
         if payments:
             try:
@@ -330,6 +331,7 @@ def insert(
                 typer.echo(f"Payment batch failed: {e}")
         else:
             typer.echo(f"[{run_id}] No payments generated.")
+
 
         report = {
             "run_id": run_id,

@@ -86,6 +86,7 @@ def test_generate_payments_random_subset_nonzero():
     assert all(p["Invoice"]["LineItems"] == [] for p in payments)
 
 
+
 def test_insert_writes_reports_with_xero_data(tmp_path, monkeypatch):
     import types, sys, synthap
     import synthap.config
