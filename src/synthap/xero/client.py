@@ -86,10 +86,6 @@ async def post_payments(payments: List[Dict[str, Any]]) -> Dict[str, Any]:
         if r.status_code == 401:
             tok = await refresh_token_if_needed()
             tenant_id = await resolve_tenant_id(tok)
-            r = await client.post(f"{XERO_BASE}/Payments", json=payload, headers=headers)
-        if r.status_code == 401:
-            tok = await refresh_token_if_needed()
-            tenant_id = await resolve_tenant_id(tok)
             r = await client.post(
                 f"{XERO_BASE}/Payments", json=payload, headers=_with_tenant(_auth_headers(tok), tenant_id)
             )

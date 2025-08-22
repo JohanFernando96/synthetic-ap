@@ -277,6 +277,11 @@ def insert(
                         if not match.empty:
                             inv["Vendor"] = match.iloc[0].get("vendor_id")
                     invoice_records.append(inv)
+            except RetryError as e:
+                total_fail += len(batch)
+                typer.echo(
+                    f"Batch {i//batch_size} failed: {e.last_attempt.exception()}"
+                )
             except Exception as e:
                 total_fail += len(batch)
                 typer.echo(f"Batch {i//batch_size} failed: {e}")
