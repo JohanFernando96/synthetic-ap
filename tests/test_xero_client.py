@@ -20,7 +20,7 @@ sys.modules["synthap.config.settings"] = fake_settings
 from synthap.xero import client as xc
 
 
-def test_post_payments_uses_post(monkeypatch):
+def test_post_payments_uses_put(monkeypatch):
     called = {}
 
     class DummyClient:
@@ -30,8 +30,8 @@ def test_post_payments_uses_post(monkeypatch):
         async def __aexit__(self, exc_type, exc, tb):
             pass
 
-        async def post(self, url, json, headers):
-            called['method'] = 'POST'
+        async def put(self, url, json, headers):
+            called['method'] = 'PUT'
             return httpx.Response(200, json={"Payments": []})
 
     monkeypatch.setattr(httpx, "AsyncClient", lambda *a, **kw: DummyClient())
@@ -52,4 +52,4 @@ def test_post_payments_uses_post(monkeypatch):
     ]
 
     asyncio.run(xc.post_payments(payments))
-    assert called.get('method') == 'POST'
+    assert called.get('method') == 'PUT'
