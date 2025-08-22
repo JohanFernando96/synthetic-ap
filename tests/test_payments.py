@@ -48,6 +48,7 @@ def test_generate_payments_selection():
     assert payments[0]["Invoice"]["InvoiceID"] in {"1", "2", "3"}
     assert payments[0]["Account"]["Code"] == "001"
     assert payments[0]["Date"] == "2024-01-01"
+    assert payments[0]["Invoice"]["LineItems"] == []
 
 
 def test_generate_payments_all():
@@ -67,6 +68,22 @@ def test_generate_payments_all():
     assert ids == {"1", "2"}
 
 
+def test_generate_payments_random_subset_nonzero():
+    invoices = [
+        {"InvoiceID": "1", "AmountDue": 100},
+        {"InvoiceID": "2", "AmountDue": 200},
+        {"InvoiceID": "3", "AmountDue": 300},
+    ]
+    payments = generate_payments(
+        invoices,
+        pay_count=None,
+        pay_all=False,
+        account_code="001",
+        payment_date=date(2024, 1, 1),
+        rng=random.Random(0),
+    )
+    assert len(payments) == 2  # Random(0) with three invoices selects two
+    assert all(p["Invoice"]["LineItems"] == [] for p in payments)
 def test_insert_writes_reports_with_xero_data(tmp_path, monkeypatch):
     import types, sys, synthap
     import synthap.config
