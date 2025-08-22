@@ -36,3 +36,5 @@ dist/
 .env
 /runs/
 .xero_token.json
+.xero_token.json
+.xero_token.json
