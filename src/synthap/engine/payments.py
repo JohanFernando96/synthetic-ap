@@ -6,6 +6,7 @@ from typing import List, Dict, Any, Optional
 
 def generate_payments(
     invoice_records: List[Dict[str, Any]],
+
     account_code: str | None = None,
     payment_date: Optional[date] = None,
 ) -> List[Dict[str, Any]]:

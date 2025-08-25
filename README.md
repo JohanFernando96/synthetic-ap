@@ -22,9 +22,11 @@ item name.
 ## Invoice insertion and payment reports
 
 Run `synthap generate` to stage invoices and `synthap insert` to post them to
+
 Xero. During generation the tool records which staged invoices should later be
 paid in `to_pay.json`. After insertion the application writes several JSON
 reports to the run directory (`runs/<run_id>`):
+
 
 - `insertion_report.json` – summary counts of inserted invoices and payments
   made.
@@ -32,6 +34,7 @@ reports to the run directory (`runs/<run_id>`):
   API, including the assigned `InvoiceID` values.
 - `payment_report.json` – raw payment records returned by the Xero Payments
   API.
+
 - `to_pay.json` – references for staged invoices that should be paid; used to
   construct the Xero payment payload after invoice insertion.
 

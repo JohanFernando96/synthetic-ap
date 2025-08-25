@@ -27,6 +27,7 @@ def test_parse_pay_all():
         today=date(2024, 1, 1),
     )
     assert pq.pay_all is True
+    
 def test_generate_payments_builds_payloads():
     invoices = [
         {"InvoiceID": "1", "AmountDue": 100},
@@ -41,7 +42,6 @@ def test_generate_payments_builds_payloads():
     assert payments[0]["Account"]["Code"] == "001"
     assert payments[0]["Date"] == "2024-01-01"
     assert all(p["Invoice"]["LineItems"] == [] for p in payments)
-
 
 def test_insert_writes_reports_with_xero_data(tmp_path, monkeypatch):
     import types, sys, synthap
