@@ -112,7 +112,7 @@ def generate(
 
     # 1) AI plan (with built-in guardrails + AU fiscal periods)
     plan: AIPlan = plan_from_query(query, cat, today=date.today())
-    parsed_query = parse_nlp_to_query(query, today=date.today())
+    parsed_query = parse_nlp_to_query(query, today=date.today(), catalogs=cat, use_llm=True)
 
     # Apply CLI overrides (final say)
     if allow_price_variation is not None:

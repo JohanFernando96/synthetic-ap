@@ -88,7 +88,7 @@ def plan_from_query(query: str, cat: Catalogs, today: date) -> Plan:
 
     if not cfg.ai.enabled:
         from ..nlp.parser import parse_nlp_to_query
-        pq = parse_nlp_to_query(query, today=today)
+        pq = parse_nlp_to_query(query, today=today, catalogs=cat, use_llm=True)
         start, end = pq.date_range.start, pq.date_range.end
         total = pq.total_count or total_fallback
         # spread across up to max_vendors
@@ -171,7 +171,7 @@ def plan_from_query(query: str, cat: Catalogs, today: date) -> Plan:
     except Exception as e:
         # Hard fallback on any JSON/validation error
         from ..nlp.parser import parse_nlp_to_query
-        pq = parse_nlp_to_query(query, today=today)
+        pq = parse_nlp_to_query(query, today=today, catalogs=cat, use_llm=True)
         start, end = pq.date_range.start, pq.date_range.end
         total = pq.total_count or total_fallback
         take = min(cfg.ai.max_vendors, len(cat.vendors))
