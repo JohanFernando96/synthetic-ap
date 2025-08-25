@@ -40,6 +40,13 @@ class RuntimeConfig(BaseModel):
     generator: GeneratorCfg = Field(default_factory=GeneratorCfg)
     artifacts: ArtifactsCfg = Field(default_factory=ArtifactsCfg)
     force_no_tax: bool = False
+    payments: "PaymentCfg" = Field(default_factory=lambda: PaymentCfg())
+
+
+class PaymentCfg(BaseModel):
+    pay_on_due_date: bool = False
+    allow_overdue: bool = False
+    pay_when_unspecified: bool = False
 
 
 def _config_dir(base_dir: str) -> Path:
