@@ -27,7 +27,6 @@ Xero. During generation the tool records which staged invoices should later be
 paid in `to_pay.json`. After insertion the application writes several JSON
 reports to the run directory (`runs/<run_id>`):
 
-
 - `insertion_report.json` – summary counts of inserted invoices and payments
   made.
 - `invoice_report.json` – raw invoice records returned by the Xero Invoices
@@ -37,10 +36,16 @@ reports to the run directory (`runs/<run_id>`):
 
 - `to_pay.json` – references for staged invoices that should be paid; used to
   construct the Xero payment payload after invoice insertion.
+- `xero_log.json` – chronological log of requests and responses sent to Xero
+  during insertion and payment, useful for debugging API failures.
+
 
 The generator can understand phrases like "pay for 4 bills", "pay for all", or
 leave payment count unspecified (random subset). It records the chosen invoices
 in `to_pay.json`, and the `insert` command first posts all invoices to Xero and
-then pays only those listed. The Xero account used for payments is configured
-via the `XERO_PAYMENT_ACCOUNT_CODE` setting.
+
+then reloads `invoice_report.json` to obtain the corresponding `InvoiceID`
+values before paying only those listed. The Xero account used for payments is
+configured via the `XERO_PAYMENT_ACCOUNT_CODE` setting.
+
 

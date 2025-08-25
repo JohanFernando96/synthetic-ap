@@ -282,10 +282,13 @@ def insert(
         batch_size = 50
         total_ok, total_fail = 0, 0
         invoice_records = []
+        xero_log: list[dict[str, object]] = []
+
         for i in range(0, len(payloads), batch_size):
             batch = payloads[i : i + batch_size]
             try:
                 resp = await post_invoices(batch)
+                xero_log.append({"action": "post_invoices", "request": batch, "response": resp})
                 batch_invoices = resp.get("Invoices", [])
                 total_ok += len(batch_invoices)
                 for inv in batch_invoices:
@@ -297,15 +300,27 @@ def insert(
                     invoice_records.append(inv)
             except RetryError as e:
                 total_fail += len(batch)
-                typer.echo(
-                    f"Batch {i//batch_size} failed: {e.last_attempt.exception()}"
-                )
+
+                err = str(e.last_attempt.exception())
+                xero_log.append({"action": "post_invoices", "request": batch, "error": err})
+                typer.echo(f"Batch {i//batch_size} failed: {err}")
             except Exception as e:
                 total_fail += len(batch)
-                typer.echo(f"Batch {i//batch_size} failed: {e}")
+                err = str(e)
+                xero_log.append({"action": "post_invoices", "request": batch, "error": err})
+                typer.echo(f"Batch {i//batch_size} failed: {err}")
+
+
         # Persist invoice data so payment runs can match references to IDs.
         inv_report_path = base / "invoice_report.json"
         write_json({"run_id": run_id, "invoices": invoice_records}, inv_report_path)
+
+        # Reload invoices from report to ensure IDs are read from disk.
+        try:
+            invoice_records = json.loads(inv_report_path.read_text()).get("invoices", [])
+        except Exception:
+            invoice_records = []
+
 
         # Load list of references that should be paid
         to_pay_refs: list[str] = []
@@ -322,16 +337,23 @@ def insert(
             records_to_pay,
             account_code=settings.xero_payment_account_code,
         )
+
+
         payment_records = []
         if payments:
             try:
                 resp = await post_payments(payments)
+                xero_log.append({"action": "post_payments", "request": payments, "response": resp})
                 payment_records = resp.get("Payments", [])
                 typer.echo(f"[{run_id}] Paid {len(payment_records)} invoices.")
             except RetryError as e:
-                typer.echo(f"Payment batch failed: {e.last_attempt.exception()}")
+                err = str(e.last_attempt.exception())
+                xero_log.append({"action": "post_payments", "request": payments, "error": err})
+                typer.echo(f"Payment batch failed: {err}")
             except Exception as e:
-                typer.echo(f"Payment batch failed: {e}")
+                err = str(e)
+                xero_log.append({"action": "post_payments", "request": payments, "error": err})
+                typer.echo(f"Payment batch failed: {err}")
         else:
             typer.echo(f"[{run_id}] No payments generated.")
 
@@ -343,6 +365,7 @@ def insert(
         }
         write_json(report, base / "insertion_report.json")
         write_json({"run_id": run_id, "payments": payment_records}, base / "payment_report.json")
+        write_json({"run_id": run_id, "events": xero_log}, base / "xero_log.json")
         typer.echo(f"[{run_id}] Inserted: {total_ok}, Failed: {total_fail}. Report saved.")
 
     asyncio.run(_insert())

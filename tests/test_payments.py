@@ -27,7 +27,6 @@ def test_parse_pay_all():
         today=date(2024, 1, 1),
     )
     assert pq.pay_all is True
-    
 def test_generate_payments_builds_payloads():
     invoices = [
         {"InvoiceID": "1", "AmountDue": 100},
@@ -157,8 +156,12 @@ def test_insert_writes_reports_with_xero_data(tmp_path, monkeypatch):
 
     inv_report = json.loads((base / "invoice_report.json").read_text())
     pay_report = json.loads((base / "payment_report.json").read_text())
+    log_report = json.loads((base / "xero_log.json").read_text())
+
 
     assert inv_report["run_id"] == "run1"
     assert inv_report["invoices"][0]["InvoiceID"] == "inv1"
     assert pay_report["run_id"] == "run1"
     assert pay_report["payments"][0]["PaymentID"] == "pay1"
+    actions = [e["action"] for e in log_report["events"]]
+    assert "post_invoices" in actions and "post_payments" in actions
