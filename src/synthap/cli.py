@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import secrets
+import random
 import json
 from pathlib import Path
 from datetime import date
@@ -162,6 +163,21 @@ def generate(
                 }
             )
         write_json({"Invoices": meta}, base / "xero_invoices_with_meta.json")
+    # Determine which invoices should be paid in a later step and persist
+    # the list of references so the insert phase can match on invoice IDs.
+    all_refs = [inv.reference for inv in invoices]
+    to_pay_refs: list[str] = []
+    rng = random.Random(seed)
+    if parsed_query.pay_all:
+        to_pay_refs = all_refs
+    else:
+        pay_count = parsed_query.pay_count
+        if pay_count is None and all_refs:
+            pay_count = rng.randint(1, len(all_refs))
+        if pay_count:
+            pay_count = max(0, min(pay_count, len(all_refs)))
+            to_pay_refs = rng.sample(all_refs, pay_count)
+    write_json({"run_id": run_id, "references": to_pay_refs}, base / "to_pay.json")
 
     gen_report = {
         "run_id": run_id,
@@ -180,6 +196,7 @@ def generate(
             "xero_invoices_with_meta_json": str(
                 (base / "xero_invoices_with_meta.json").as_posix()
             ),
+            "to_pay_json": str((base / "to_pay.json").as_posix()),
         },
         "config_used": {
             "allow_price_variation": plan.allow_price_variation,
@@ -191,6 +208,7 @@ def generate(
         "payment_instructions": {
             "count": parsed_query.pay_count,
             "all": parsed_query.pay_all,
+            "references": to_pay_refs,
         },
     }
     write_json(gen_report, base / "generation_report.json")
@@ -285,40 +303,25 @@ def insert(
             except Exception as e:
                 total_fail += len(batch)
                 typer.echo(f"Batch {i//batch_size} failed: {e}")
-        # Persist invoice data before attempting payments so a subsequent
-        # payment run can read the file directly.
+        # Persist invoice data so payment runs can match references to IDs.
         inv_report_path = base / "invoice_report.json"
         write_json({"run_id": run_id, "invoices": invoice_records}, inv_report_path)
 
-        # Load pay instructions from generation report
-        pay_count = None
-        pay_all = False
-        gen_report_path = base / "generation_report.json"
-        if gen_report_path.exists():
+        # Load list of references that should be paid
+        to_pay_refs: list[str] = []
+        to_pay_path = base / "to_pay.json"
+        if to_pay_path.exists():
             try:
-                pay_info = json.loads(gen_report_path.read_text()).get(
-                    "payment_instructions", {}
-                )
-                pay_count = pay_info.get("count")
-                pay_all = bool(pay_info.get("all"))
+                to_pay_refs = json.loads(to_pay_path.read_text()).get("references", [])
             except Exception:
                 pass
 
-
-        # Use the saved invoice report as the source of invoice IDs
-        try:
-            saved_records = json.loads(inv_report_path.read_text()).get("invoices", [])
-        except Exception:
-            saved_records = []
+        records_to_pay = [r for r in invoice_records if r.get("Reference") in to_pay_refs]
 
         payments = generate_payments(
-            saved_records,
-            pay_count=pay_count,
-            pay_all=pay_all,
+            records_to_pay,
             account_code=settings.xero_payment_account_code,
         )
-
-
         payment_records = []
         if payments:
             try:
@@ -331,7 +334,6 @@ def insert(
                 typer.echo(f"Payment batch failed: {e}")
         else:
             typer.echo(f"[{run_id}] No payments generated.")
-
 
         report = {
             "run_id": run_id,

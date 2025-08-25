@@ -1,6 +1,5 @@
 from datetime import date
 import json
-import random
 import sys
 from pathlib import Path
 
@@ -28,64 +27,21 @@ def test_parse_pay_all():
         today=date(2024, 1, 1),
     )
     assert pq.pay_all is True
-
-
-def test_generate_payments_selection():
-    invoices = [
-        {"InvoiceID": "1", "AmountDue": 100},
-        {"InvoiceID": "2", "AmountDue": 200},
-        {"InvoiceID": "3", "AmountDue": 300},
-    ]
-    payments = generate_payments(
-        invoices,
-        pay_count=1,
-        pay_all=False,
-        account_code="001",
-        payment_date=date(2024, 1, 1),
-        rng=random.Random(0),
-    )
-    assert len(payments) == 1
-    assert payments[0]["Invoice"]["InvoiceID"] in {"1", "2", "3"}
-    assert payments[0]["Account"]["Code"] == "001"
-    assert payments[0]["Date"] == "2024-01-01"
-    assert payments[0]["Invoice"]["LineItems"] == []
-
-
-def test_generate_payments_all():
+    
+def test_generate_payments_builds_payloads():
     invoices = [
         {"InvoiceID": "1", "AmountDue": 100},
         {"InvoiceID": "2", "AmountDue": 200},
     ]
     payments = generate_payments(
         invoices,
-        pay_count=None,
-        pay_all=True,
         account_code="001",
         payment_date=date(2024, 1, 1),
     )
     assert len(payments) == 2
-    ids = {p["Invoice"]["InvoiceID"] for p in payments}
-    assert ids == {"1", "2"}
-
-
-def test_generate_payments_random_subset_nonzero():
-    invoices = [
-        {"InvoiceID": "1", "AmountDue": 100},
-        {"InvoiceID": "2", "AmountDue": 200},
-        {"InvoiceID": "3", "AmountDue": 300},
-    ]
-    payments = generate_payments(
-        invoices,
-        pay_count=None,
-        pay_all=False,
-        account_code="001",
-        payment_date=date(2024, 1, 1),
-        rng=random.Random(0),
-    )
-    assert len(payments) == 2  # Random(0) with three invoices selects two
+    assert payments[0]["Account"]["Code"] == "001"
+    assert payments[0]["Date"] == "2024-01-01"
     assert all(p["Invoice"]["LineItems"] == [] for p in payments)
-
-
 
 def test_insert_writes_reports_with_xero_data(tmp_path, monkeypatch):
     import types, sys, synthap
@@ -102,6 +58,33 @@ def test_insert_writes_reports_with_xero_data(tmp_path, monkeypatch):
 
     sys.modules.pop("pydantic", None)
     import pydantic  # reload real module
+
+    # Provide a dummy openai module so the CLI can be imported without the
+    # heavyweight dependency.
+    fake_openai = types.ModuleType("openai")
+    class DummyOpenAI:
+        pass
+    fake_openai.OpenAI = DummyOpenAI
+    sys.modules["openai"] = fake_openai
+
+    # Stub FastAPI and uvicorn since the auth server isn't exercised in tests
+    fake_fastapi = types.ModuleType("fastapi")
+    class DummyFastAPI:
+        def __init__(self, *a, **kw):
+            pass
+        def get(self, *a, **kw):
+            def decorator(f):
+                return f
+            return decorator
+    class DummyRequest:
+        def __init__(self, *a, **kw):
+            self.query_params = {}
+    fake_fastapi.FastAPI = DummyFastAPI
+    fake_fastapi.Request = DummyRequest
+    sys.modules["fastapi"] = fake_fastapi
+    fake_uvicorn = types.ModuleType("uvicorn")
+    fake_uvicorn.run = lambda *a, **kw: None
+    sys.modules["uvicorn"] = fake_uvicorn
 
     from synthap import cli
 
@@ -138,8 +121,8 @@ def test_insert_writes_reports_with_xero_data(tmp_path, monkeypatch):
     )
     line_df.to_parquet(base / "invoice_lines.parquet", index=False)
 
-    (base / "generation_report.json").write_text(
-        json.dumps({"payment_instructions": {"count": 1}})
+    (base / "to_pay.json").write_text(
+        json.dumps({"run_id": "run1", "references": ["ABC"]})
     )
 
     monkeypatch.setattr(cli.settings, "runs_dir", str(tmp_path))
