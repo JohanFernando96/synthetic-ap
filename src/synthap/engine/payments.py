@@ -10,6 +10,7 @@ def generate_payments(
     account_code: str | None = None,
     payment_date: Optional[date] = None,
     pay_on_due_date: bool = False,
+    allow_overdue: bool = False,
 ) -> List[Dict[str, Any]]:
     """Create Xero payment payloads for the provided invoices.
 
@@ -44,12 +45,19 @@ def generate_payments(
             if pay_on_due_date:
                 pay_date = due_date
             else:
-                end = due_date - timedelta(days=1)
-                if end < inv_date:
-                    end = inv_date
-                delta = (end - inv_date).days
-                offset = random.randint(0, delta) if delta > 0 else 0
-                pay_date = inv_date + timedelta(days=offset)
+                if allow_overdue:
+                    start = due_date + timedelta(days=1)
+                    end = due_date + timedelta(days=30)
+                    delta = (end - start).days
+                    offset = random.randint(0, delta) if delta > 0 else 0
+                    pay_date = start + timedelta(days=offset)
+                else:
+                    end = due_date - timedelta(days=1)
+                    if end < inv_date:
+                        end = inv_date
+                    delta = (end - inv_date).days
+                    offset = random.randint(0, delta) if delta > 0 else 0
+                    pay_date = inv_date + timedelta(days=offset)
         payments.append(
             {
                 "Invoice": {"InvoiceID": inv_id, "LineItems": []},

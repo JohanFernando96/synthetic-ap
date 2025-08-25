@@ -22,6 +22,14 @@ def test_parse_pay_count():
     assert not pq.pay_all
 
 
+def test_parse_pay_count_with_only():
+    pq = parse_nlp_to_query(
+        "Generate 6 bills for the Q1 2023 pay for only 2",
+        today=date(2023, 1, 1),
+    )
+    assert pq.pay_count == 2
+    assert not pq.pay_all
+
 def test_parse_pay_all():
     pq = parse_nlp_to_query(
         "Generate 10 bills for Q1 2024 and pay for all",
@@ -74,6 +82,24 @@ def test_generate_payments_pay_on_due_date():
     assert payments[0]["Date"] == "2024-01-10"
 
 
+def test_generate_payments_overdue(monkeypatch):
+    invoices = [
+        {
+            "InvoiceID": "1",
+            "AmountDue": 100,
+            "DateString": "2024-01-01T00:00:00",
+            "DueDateString": "2024-01-10T00:00:00",
+        }
+    ]
+    monkeypatch.setattr(random, "randint", lambda a, b: 0)
+    payments = generate_payments(
+        invoices,
+        account_code="101",
+        allow_overdue=True,
+    )
+    assert payments[0]["Date"] > "2024-01-10"
+
+
 def test_insert_writes_reports_with_xero_data(tmp_path, monkeypatch):
     import types, sys, synthap
     import synthap.config
@@ -84,41 +110,24 @@ def test_insert_writes_reports_with_xero_data(tmp_path, monkeypatch):
         runs_dir = str(tmp_path)
         xero_payment_account_code = "101"
         pay_on_due_date = False
+        data_dir = str(tmp_path)
 
     fake_settings.settings = DummySettings()
     sys.modules["synthap.config.settings"] = fake_settings
 
-    sys.modules.pop("pydantic", None)
-    import pydantic  # reload real module
+    # Ensure runtime config has payment defaults
+    import synthap.cli as cli
+    from synthap.config import runtime_config as rc_module
 
-    # Provide a dummy openai module so the CLI can be imported without the
-    # heavyweight dependency.
-    fake_openai = types.ModuleType("openai")
-    class DummyOpenAI:
-        pass
-    fake_openai.OpenAI = DummyOpenAI
-    sys.modules["openai"] = fake_openai
+    class DummyRuntimeCfg(rc_module.RuntimeConfig):
+        def __init__(self):
+            super().__init__(payments=rc_module.PaymentCfg())
 
-    # Stub FastAPI and uvicorn since the auth server isn't exercised in tests
-    fake_fastapi = types.ModuleType("fastapi")
-    class DummyFastAPI:
-        def __init__(self, *a, **kw):
-            pass
-        def get(self, *a, **kw):
-            def decorator(f):
-                return f
-            return decorator
-    class DummyRequest:
-        def __init__(self, *a, **kw):
-            self.query_params = {}
-    fake_fastapi.FastAPI = DummyFastAPI
-    fake_fastapi.Request = DummyRequest
-    sys.modules["fastapi"] = fake_fastapi
-    fake_uvicorn = types.ModuleType("uvicorn")
-    fake_uvicorn.run = lambda *a, **kw: None
-    sys.modules["uvicorn"] = fake_uvicorn
+    def fake_load_runtime_config(base_dir: str):
+        return DummyRuntimeCfg()
 
     from synthap import cli
+    monkeypatch.setattr(cli, "load_runtime_config", fake_load_runtime_conf
 
     base = tmp_path / "run1"
     base.mkdir()

@@ -1,50 +1,93 @@
 # Synthetic AP
 
-This project generates synthetic accounts payable invoices for testing and demos.
+Synthetic AP generates realistic accounts payable invoices and optional payment
+records that can be inserted into Xero for demos or testing.
 
-## AI line item descriptions
+## Setup
 
-To have invoice lines use realistic descriptions rather than the raw catalog item
-names, enable the feature in `data/config/runtime_config.yaml`:
+1. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt  # or rely on the provided Poetry setup
+   ```
+2. **Environment variables** – create a `.env` file or export the following:
+   - `XERO_CLIENT_ID`
+   - `XERO_CLIENT_SECRET`
+   - `XERO_REDIRECT_URI`
+   - `XERO_SCOPES`
+   - `XERO_PAYMENT_ACCOUNT_CODE` (defaults to `101`)
 
+## Configuration
+
+Configuration lives under `data/config/`:
+
+- **service_defaults.yaml** – baseline values committed to the repo
+- **runtime_config.yaml** – overrides applied on each run
+
+Both files support these sections:
 
 ```yaml
 ai:
+  model: gpt-4o-mini
   line_item_description_enabled: true
-  line_item_description_prompt: "Write a short description for invoice line item '{item_name}'."
+
+generator:
+  allow_price_variation: false
+  price_variation_pct: 0.10
+  business_days_only: true
+
+payments:
+  pay_on_due_date: false   # pay exactly on the due date
+  allow_overdue: false     # if true and not paying on due date, pick a date after due
 ```
 
-Defaults live in `data/config/service_defaults.yaml` and can be overridden at
-runtime. When enabled the generator will call OpenAI to craft a natural
-description for each line item while keeping it consistent with the catalog's
-item name.
+## Workflow
 
-## Invoice insertion and payment reports
+1. **Generate invoices**
+   ```bash
+   poetry run python -m synthap.cli generate -q "Generate 6 bills for the Q1 2023 pay for only 2"
+   ```
+   Options:
+   - `--seed` to make runs deterministic
+   - `--allow-price-variation/--no-price-variation`
+   - `--price-variance-pct` to override the percentage
 
-Run `synthap generate` to stage invoices and `synthap insert` to post them to
-Xero. During generation the tool records which staged invoices should later be
-paid in `to_pay.json`. After insertion the application writes several JSON
-reports to the run directory (`runs/<run_id>`):
+   The command stages data under `runs/<run_id>/` including `to_pay.json` which
+   lists which invoices should be paid after insertion.
 
-- `insertion_report.json` – summary counts of inserted invoices and payments
-  made.
-- `invoice_report.json` – raw invoice records returned by the Xero Invoices
-  API, including the assigned `InvoiceID` values.
-- `payment_report.json` – raw payment records returned by the Xero Payments
-  API.
-- `to_pay.json` – references for staged invoices that should be paid; used to
-  construct the Xero payment payload after invoice insertion.
-- `xero_log.json` – chronological log of requests and responses sent to Xero
-  during insertion and payment, useful for debugging API failures.
+2. **Insert into Xero and pay**
+   ```bash
+   poetry run python -m synthap.cli insert --run-id <run_id>
+   ```
+   By default all staged invoices are inserted; use `--reference` or `--limit`
+   to filter. The command:
+   - posts invoices to the Xero Invoices API
+   - reloads `invoice_report.json` to capture `InvoiceID`s
+   - builds payment payloads for invoices listed in `to_pay.json`
+   - posts payments via the Xero Payments endpoint
 
-The generator can understand phrases like "pay for 4 bills", "pay for all", or
-leave payment count unspecified (random subset). It records the chosen invoices
-in `to_pay.json`, and the `insert` command first posts all invoices to Xero and
-then reloads `invoice_report.json` to obtain the corresponding `InvoiceID`
-values before paying only those listed. The Xero account used for payments is
-configured via the `XERO_PAYMENT_ACCOUNT_CODE` setting (defaults to `101`).
+3. **Inspect run artifacts** – each run directory contains:
+   - `invoice_report.json` – Xero invoice responses with IDs
+   - `payment_report.json` – Xero payment responses
+   - `xero_log.json` – chronological request/response log
+   - `insertion_report.json` – counts of invoices inserted and payments made
 
-Payment dates are chosen within each invoice's payment term. By default the
-system selects a random day on or after the invoice date but before the due
-date. Set `PAY_ON_DUE_DATE=true` to always pay on the due date instead.
+## Additional Commands
+
+- `poetry run python -m synthap.cli auth-init` – start a local server to obtain
+  OAuth tokens for Xero
+- `poetry run python -m synthap.cli xero-status` – verify token and tenant ID
+
+## Testing
+
+Run the test suite with:
+```bash
+pytest -q
+```
+
+## Notes
+
+Payment generation obeys NLP directives such as "pay for 4" or "pay for all".
+When unspecified, a random subset of invoices is paid. Payment dates are chosen
+within the invoice term unless `payments.allow_overdue` or
+`payments.pay_on_due_date` is set.
 
