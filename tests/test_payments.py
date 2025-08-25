@@ -42,7 +42,6 @@ def test_generate_payments_builds_payloads():
     assert payments[0]["Date"] == "2024-01-01"
     assert all(p["Invoice"]["LineItems"] == [] for p in payments)
 
-
 def test_insert_writes_reports_with_xero_data(tmp_path, monkeypatch):
     import types, sys, synthap
     import synthap.config
@@ -158,6 +157,7 @@ def test_insert_writes_reports_with_xero_data(tmp_path, monkeypatch):
     inv_report = json.loads((base / "invoice_report.json").read_text())
     pay_report = json.loads((base / "payment_report.json").read_text())
     log_report = json.loads((base / "xero_log.json").read_text())
+
 
     assert inv_report["run_id"] == "run1"
     assert inv_report["invoices"][0]["InvoiceID"] == "inv1"

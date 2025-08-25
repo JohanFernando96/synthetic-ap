@@ -300,6 +300,7 @@ def insert(
                     invoice_records.append(inv)
             except RetryError as e:
                 total_fail += len(batch)
+
                 err = str(e.last_attempt.exception())
                 xero_log.append({"action": "post_invoices", "request": batch, "error": err})
                 typer.echo(f"Batch {i//batch_size} failed: {err}")
@@ -308,6 +309,7 @@ def insert(
                 err = str(e)
                 xero_log.append({"action": "post_invoices", "request": batch, "error": err})
                 typer.echo(f"Batch {i//batch_size} failed: {err}")
+
 
         # Persist invoice data so payment runs can match references to IDs.
         inv_report_path = base / "invoice_report.json"
@@ -318,6 +320,7 @@ def insert(
             invoice_records = json.loads(inv_report_path.read_text()).get("invoices", [])
         except Exception:
             invoice_records = []
+
 
         # Load list of references that should be paid
         to_pay_refs: list[str] = []
@@ -334,6 +337,7 @@ def insert(
             records_to_pay,
             account_code=settings.xero_payment_account_code,
         )
+
 
         payment_records = []
         if payments:
