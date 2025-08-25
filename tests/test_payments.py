@@ -10,6 +10,7 @@ import pandas as pd
 
 from synthap.nlp.parser import parse_nlp_to_query
 from synthap.engine.payments import generate_payments
+from synthap.engine.payments import select_invoices_to_pay
 
 
 def test_parse_pay_count():
@@ -100,6 +101,19 @@ def test_generate_payments_overdue(monkeypatch):
     assert payments[0]["Date"] > "2024-01-10"
 
 
+def test_select_invoices_to_pay_respects_config():
+    all_refs = ["A", "B", "C"]
+    rng = random.Random(42)
+
+    # No directive and config forbids paying
+    refs = select_invoices_to_pay(all_refs, None, False, False, rng)
+    assert refs == []
+
+    # No directive but config allows random payment
+    refs2 = select_invoices_to_pay(all_refs, None, False, True, rng)
+    assert 1 <= len(refs2) <= len(all_refs)
+
+
 def test_insert_writes_reports_with_xero_data(tmp_path, monkeypatch):
     import types, sys, synthap
     import synthap.config
@@ -127,7 +141,7 @@ def test_insert_writes_reports_with_xero_data(tmp_path, monkeypatch):
         return DummyRuntimeCfg()
 
     from synthap import cli
-    monkeypatch.setattr(cli, "load_runtime_config", fake_load_runtime_conf
+    monkeypatch.setattr(cli, "load_runtime_config", fake_load_runtime_config)
 
     base = tmp_path / "run1"
     base.mkdir()

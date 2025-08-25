@@ -67,3 +67,37 @@ def generate_payments(
             }
         )
     return payments
+
+
+def select_invoices_to_pay(
+    all_refs: list[str],
+    pay_count: Optional[int],
+    pay_all: bool,
+    pay_when_unspecified: bool,
+    rng: random.Random,
+) -> list[str]:
+    """Determine which invoice references should be paid.
+
+    If ``pay_all`` is True, all invoices are selected. When ``pay_count`` is
+    provided, that exact number of invoices is sampled. If no payment directive
+    is supplied (``pay_count`` is ``None`` and ``pay_all`` is False), invoices
+    are only paid when ``pay_when_unspecified`` is True, in which case a random
+    subset is chosen. Otherwise, no invoices are marked for payment.
+    """
+
+    if not all_refs:
+        return []
+
+    if pay_all:
+        return list(all_refs)
+
+    if pay_count is None:
+        if not pay_when_unspecified:
+            return []
+        pay_count = rng.randint(1, len(all_refs))
+
+    pay_count = max(0, min(pay_count, len(all_refs)))
+    if pay_count == 0:
+        return []
+
+    return rng.sample(all_refs, pay_count)

@@ -15,6 +15,8 @@ records that can be inserted into Xero for demos or testing.
    - `XERO_REDIRECT_URI`
    - `XERO_SCOPES`
    - `XERO_PAYMENT_ACCOUNT_CODE` (defaults to `101`)
+   - `PAY_ON_DUE_DATE` (optional, default `false`)
+
 
 ## Configuration
 
@@ -38,7 +40,7 @@ generator:
 payments:
   pay_on_due_date: false   # pay exactly on the due date
   allow_overdue: false     # if true and not paying on due date, pick a date after due
-```
+  pay_when_unspecified: false  # if true, randomly pay some invoices even when the query has no pay directive
 
 ## Workflow
 
@@ -87,7 +89,8 @@ pytest -q
 ## Notes
 
 Payment generation obeys NLP directives such as "pay for 4" or "pay for all".
-When unspecified, a random subset of invoices is paid. Payment dates are chosen
-within the invoice term unless `payments.allow_overdue` or
+By default, no payments are made unless the NLP query includes a directive
+(`pay for 2`, `pay for all`, etc.). Set `payments.pay_when_unspecified: true`
+to allow random payments when no directive is provided. Payment dates are
+chosen within the invoice term unless `payments.allow_overdue` or
 `payments.pay_on_due_date` is set.
-

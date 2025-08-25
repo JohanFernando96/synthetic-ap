@@ -29,7 +29,7 @@ from .nlp.parser import parse_nlp_to_query
 
 # Xero (OAuth + client)
 from .xero.client import post_invoices, resolve_tenant_id, post_payments
-from .engine.payments import generate_payments
+from .engine.payments import generate_payments, select_invoices_to_pay
 from .xero.oauth import TokenStore, refresh_token_if_needed
 
 app = typer.Typer(add_completion=False)
@@ -168,17 +168,14 @@ def generate(
     # Determine which invoices should be paid in a later step and persist
     # the list of references so the insert phase can match on invoice IDs.
     all_refs = [inv.reference for inv in invoices]
-    to_pay_refs: list[str] = []
     rng = random.Random(seed)
-    if parsed_query.pay_all:
-        to_pay_refs = all_refs
-    else:
-        pay_count = parsed_query.pay_count
-        if pay_count is None and all_refs:
-            pay_count = rng.randint(1, len(all_refs))
-        if pay_count:
-            pay_count = max(0, min(pay_count, len(all_refs)))
-            to_pay_refs = rng.sample(all_refs, pay_count)
+    to_pay_refs = select_invoices_to_pay(
+        all_refs,
+        parsed_query.pay_count,
+        parsed_query.pay_all,
+        cfg.payments.pay_when_unspecified,
+        rng,
+    )
     write_json({"run_id": run_id, "references": to_pay_refs}, base / "to_pay.json")
 
     gen_report = {

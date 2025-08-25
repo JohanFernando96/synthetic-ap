@@ -20,3 +20,4 @@ force_no_tax: true
 payments:
   pay_on_due_date: false
   allow_overdue: false
+  pay_when_unspecified: false
