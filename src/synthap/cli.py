@@ -18,8 +18,6 @@ from .config.runtime_config import load_runtime_config
 from .catalogs.loader import load_catalogs
 
 # AI planner + generator
-from .ai.planner import plan_from_query
-from .ai.schema import Plan as AIPlan
 from .engine.generator import generate_from_plan
 
 # Validation, storage, mapping, reports
@@ -30,7 +28,6 @@ from .xero.mapper import map_invoice
 from .nlp.parser import parse_nlp_to_query
 
 # Xero (OAuth + client)
-from .xero.auth_server import run_server as auth_server_run
 from .xero.client import post_invoices, resolve_tenant_id, post_payments
 from .engine.payments import generate_payments
 from .xero.oauth import TokenStore, refresh_token_if_needed
@@ -68,6 +65,8 @@ def xero_status():
 
 @app.command("auth-init")
 def auth_init():
+    from .xero.auth_server import run_server as auth_server_run
+
     typer.echo("Starting local OAuth callback server...")
     typer.echo("Visit http://localhost:5050/ to see the authorize URL.")
     auth_server_run()
@@ -102,6 +101,9 @@ def generate(
       - runs/<run_id>/xero_invoices_with_meta.json (if enabled)
       - runs/<run_id>/generation_report.json
     """
+    from .ai.planner import plan_from_query
+    from .ai.schema import Plan as AIPlan
+
     cat = load_catalogs(settings.data_dir)
     cfg = load_runtime_config(settings.data_dir)
 
@@ -242,6 +244,7 @@ def insert(
 
     inv_df = pd.read_parquet(inv_path)
     line_df = pd.read_parquet(line_path)
+    cfg = load_runtime_config(settings.data_dir)
 
     payloads = []
     for ref, lines in line_df.groupby("reference"):
@@ -333,7 +336,8 @@ def insert(
         payments = generate_payments(
             records_to_pay,
             account_code=settings.xero_payment_account_code,
-            pay_on_due_date=settings.pay_on_due_date,
+            pay_on_due_date=cfg.payments.pay_on_due_date,
+            allow_overdue=cfg.payments.allow_overdue,
         )
 
         payment_records = []

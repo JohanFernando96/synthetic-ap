@@ -42,10 +42,12 @@ LINE_RANGE_PATTERNS = [
 ]
 
 PAY_COUNT_PATTERNS = [
-    r"pay for (\d+)",
-    r"pay (\d+)",
+    r"pay for only (\d+)",
+    r"pay only (\d+)",
     r"pay for (\d+) bills?",
     r"pay (\d+) bills?",
+    r"pay for (\d+)",
+    r"pay (\d+)",
 ]
 
 PAY_ALL_PATTERNS = [
