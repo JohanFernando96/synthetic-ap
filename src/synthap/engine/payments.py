@@ -50,7 +50,6 @@ def generate_payments(
                 delta = (end - inv_date).days
                 offset = random.randint(0, delta) if delta > 0 else 0
                 pay_date = inv_date + timedelta(days=offset)
-
         payments.append(
             {
                 "Invoice": {"InvoiceID": inv_id, "LineItems": []},
