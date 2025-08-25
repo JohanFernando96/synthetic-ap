@@ -10,7 +10,6 @@ python = "^3.11"
 pydantic = "^2.7"
 pydantic-settings = "^2.4"
 pyyaml = "^6.0.2"
-# pin Typer/Click combo to avoid metavar error on Windows
 typer = {version="==0.12.3", extras=["all"]}
 click = "==8.1.7"
 python-dateutil = "^2.9"
@@ -27,6 +26,7 @@ orjson = "^3.10.7"
 openai = "^1.40.0"
 fastapi = "^0.114.0"
 uvicorn = {version="^0.30.6", extras=["standard"]}
+python-dotenv = "^1.1.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.2"

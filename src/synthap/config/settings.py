@@ -7,10 +7,12 @@ from pydantic import Field
 load_dotenv()
 
 
+load_dotenv()
+
+
 class Settings(BaseSettings):
     # LLM
     openai_api_key: str = os.getenv("OPENAI_API_KEY")
-
 
     # Xero
     xero_client_id: str = os.getenv("XERO_CLIENT_ID")
@@ -30,5 +32,6 @@ class Settings(BaseSettings):
     token_file: str = os.getenv("XERO_TOKEN_FILE")
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+
 
 settings = Settings()

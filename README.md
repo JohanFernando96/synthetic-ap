@@ -17,6 +17,7 @@ records that can be inserted into Xero for demos or testing.
    - `XERO_PAYMENT_ACCOUNT_CODE` (defaults to `101`)
    - `PAY_ON_DUE_DATE` (optional, default `false`)
 
+
 ## Configuration
 
 Configuration lives under `data/config/`:
@@ -40,7 +41,6 @@ payments:
   pay_on_due_date: false   # pay exactly on the due date
   allow_overdue: false     # if true and not paying on due date, pick a date after due
   pay_when_unspecified: false  # if true, randomly pay some invoices even when the query has no pay directive
-```
 
 ## Workflow
 

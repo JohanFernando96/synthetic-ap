@@ -31,7 +31,6 @@ def test_parse_pay_count_with_only():
     assert pq.pay_count == 2
     assert not pq.pay_all
 
-
 def test_parse_pay_all():
     pq = parse_nlp_to_query(
         "Generate 10 bills for Q1 2024 and pay for all",
