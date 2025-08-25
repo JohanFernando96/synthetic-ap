@@ -11,7 +11,7 @@ fake_settings = types.ModuleType("synthap.config.settings")
 
 class DummySettings:
     xero_tenant_id = None
-    xero_payment_account_code = "001"
+    xero_payment_account_code = "101"
 
 
 fake_settings.settings = DummySettings()

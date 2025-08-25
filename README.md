@@ -42,5 +42,9 @@ leave payment count unspecified (random subset). It records the chosen invoices
 in `to_pay.json`, and the `insert` command first posts all invoices to Xero and
 then reloads `invoice_report.json` to obtain the corresponding `InvoiceID`
 values before paying only those listed. The Xero account used for payments is
-configured via the `XERO_PAYMENT_ACCOUNT_CODE` setting.
+configured via the `XERO_PAYMENT_ACCOUNT_CODE` setting (defaults to `101`).
+
+Payment dates are chosen within each invoice's payment term. By default the
+system selects a random day on or after the invoice date but before the due
+date. Set `PAY_ON_DUE_DATE=true` to always pay on the due date instead.
 

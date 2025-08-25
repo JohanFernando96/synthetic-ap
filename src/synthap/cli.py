@@ -333,6 +333,7 @@ def insert(
         payments = generate_payments(
             records_to_pay,
             account_code=settings.xero_payment_account_code,
+            pay_on_due_date=settings.pay_on_due_date,
         )
 
         payment_records = []
