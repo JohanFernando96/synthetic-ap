@@ -2,6 +2,7 @@ from datetime import date
 import json
 import sys
 from pathlib import Path
+import random
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
@@ -34,13 +35,44 @@ def test_generate_payments_builds_payloads():
     ]
     payments = generate_payments(
         invoices,
-        account_code="001",
+        account_code="101",
         payment_date=date(2024, 1, 1),
     )
     assert len(payments) == 2
-    assert payments[0]["Account"]["Code"] == "001"
+    assert payments[0]["Account"]["Code"] == "101"
     assert payments[0]["Date"] == "2024-01-01"
-    assert all(p["Invoice"]["LineItems"] == [] for p in payments)
+    assert payments[0]["Invoice"]["LineItems"] == []
+
+
+def test_generate_payments_date_within_term(monkeypatch):
+    invoices = [
+        {
+            "InvoiceID": "1",
+            "AmountDue": 100,
+            "DateString": "2024-01-01T00:00:00",
+            "DueDateString": "2024-01-10T00:00:00",
+        }
+    ]
+
+    monkeypatch.setattr(random, "randint", lambda a, b: 0)
+    payments = generate_payments(invoices, account_code="101")
+    assert payments[0]["Date"] == "2024-01-01"
+    assert payments[0]["Date"] < "2024-01-10"
+
+
+def test_generate_payments_pay_on_due_date():
+    invoices = [
+        {
+            "InvoiceID": "1",
+            "AmountDue": 100,
+            "DateString": "2024-01-01T00:00:00",
+            "DueDateString": "2024-01-10T00:00:00",
+        }
+    ]
+
+    payments = generate_payments(invoices, account_code="101", pay_on_due_date=True)
+    assert payments[0]["Date"] == "2024-01-10"
+
 
 def test_insert_writes_reports_with_xero_data(tmp_path, monkeypatch):
     import types, sys, synthap
@@ -50,7 +82,8 @@ def test_insert_writes_reports_with_xero_data(tmp_path, monkeypatch):
 
     class DummySettings:
         runs_dir = str(tmp_path)
-        xero_payment_account_code = "001"
+        xero_payment_account_code = "101"
+        pay_on_due_date = False
 
     fake_settings.settings = DummySettings()
     sys.modules["synthap.config.settings"] = fake_settings
@@ -157,7 +190,6 @@ def test_insert_writes_reports_with_xero_data(tmp_path, monkeypatch):
     inv_report = json.loads((base / "invoice_report.json").read_text())
     pay_report = json.loads((base / "payment_report.json").read_text())
     log_report = json.loads((base / "xero_log.json").read_text())
-
 
     assert inv_report["run_id"] == "run1"
     assert inv_report["invoices"][0]["InvoiceID"] == "inv1"
