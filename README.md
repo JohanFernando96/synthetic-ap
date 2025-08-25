@@ -90,3 +90,4 @@ Payment generation obeys NLP directives such as "pay for 4" or "pay for all".
 When unspecified, a random subset of invoices is paid. Payment dates are chosen
 within the invoice term unless `payments.allow_overdue` or
 `payments.pay_on_due_date` is set.
+

@@ -30,7 +30,6 @@ def test_parse_pay_count_with_only():
     assert pq.pay_count == 2
     assert not pq.pay_all
 
-
 def test_parse_pay_all():
     pq = parse_nlp_to_query(
         "Generate 10 bills for Q1 2024 and pay for all",
@@ -128,7 +127,7 @@ def test_insert_writes_reports_with_xero_data(tmp_path, monkeypatch):
         return DummyRuntimeCfg()
 
     from synthap import cli
-    monkeypatch.setattr(cli, "load_runtime_config", fake_load_runtime_config)
+    monkeypatch.setattr(cli, "load_runtime_config", fake_load_runtime_conf
 
     base = tmp_path / "run1"
     base.mkdir()
