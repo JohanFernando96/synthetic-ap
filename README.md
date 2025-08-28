@@ -104,14 +104,6 @@ poetry run python -m synthap.cli xero-status
 ```bash
 poetry run python -m synthap.cli generate -q "Generate 6 bills for the Q1 2023 pay for only 2"
 ```
-Where the prompt can include directives for the number of invoices, date ranges, vendors to use, and how many to pay.
-
-Examples are as follows:
-* "Generate 20 bills for yesterday"
-* "Generate 10000 bills for the financial year 2023"
-* "Generate 50 bills for 20-05-2025 for vendor ABC"
-* "Generate 10 bills for last month and pay all"
-* "Generate 15 bills for last week and pay only 5"
 
 Useful options:
 

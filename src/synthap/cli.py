@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import asyncio
-import secrets
-import random
 import json
-from pathlib import Path
+import random
+import secrets
 from datetime import date
+from pathlib import Path
 from typing import Optional
 
 import pandas as pd
@@ -13,24 +13,24 @@ import typer
 from slugify import slugify
 from tenacity import RetryError
 
-from .config.settings import settings
-from .config.runtime_config import load_runtime_config
 from .catalogs.loader import load_catalogs
+from .config.runtime_config import load_runtime_config
+from .config.settings import settings
+from .data.storage import to_rows, write_parquet
 
 # AI planner + generator
 from .engine.generator import generate_from_plan
+from .engine.payments import generate_payments, select_invoices_to_pay
 
 # Validation, storage, mapping, reports
 from .engine.validators import validate_invoices
-from .data.storage import to_rows, write_parquet
-from .reports.report import write_json
-from .xero.mapper import map_invoice
 from .nlp.parser import parse_nlp_to_query
+from .reports.report import write_json
 
 # Xero (OAuth + client)
-from .xero.client import post_invoices, resolve_tenant_id, post_payments
-from .engine.payments import generate_payments, select_invoices_to_pay
-from .xero.oauth import TokenStore, refresh_token_if_needed
+from .xero.client import post_invoices, post_payments, resolve_tenant_id
+from .xero.mapper import map_invoice
+from .xero.oauth import TokenStore
 
 app = typer.Typer(add_completion=False)
 
@@ -55,7 +55,7 @@ def xero_status():
 
     async def _show():
         try:
-            t = await resolve_tenant_id(tok)
+            t, _ = await resolve_tenant_id(tok)
             typer.echo(f"Resolved tenantId: {t}")
         except Exception as e:
             typer.echo(f"Failed to resolve tenantId: {e}")
