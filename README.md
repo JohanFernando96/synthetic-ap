@@ -27,17 +27,17 @@ build further analytics.
 Configuration values are read from environment variables or a `.env` file.  The
 most important settings are shown below:
 
-| Variable | Purpose |
-| --- | --- |
-| `OPENAI_API_KEY` | API key for OpenAI when LLM features are enabled. |
-| `XERO_CLIENT_ID`, `XERO_CLIENT_SECRET`, `XERO_REDIRECT_URI`, `XERO_SCOPES` | OAuth details for Xero. |
-| `XERO_TENANT_ID` | Xero tenant identifier (resolved after auth if omitted). |
-| `XERO_PAYMENT_ACCOUNT_CODE` | Account code used when posting payments (default `101`). |
-| `PAY_ON_DUE_DATE` | If `true`, date payments exactly on the invoice due date. |
-| `TIMEZONE`, `DEFAULT_SEED`, `FISCAL_YEAR_START_MONTH` | Optional service settings. |
-| `DATA_DIR` | Base directory for catalogs and configuration files. |
-| `RUNS_DIR` | Directory where run artifacts are written. |
-| `XERO_TOKEN_FILE` | Location of the OAuth token store. |
+| Variable                                                                   | Purpose                                                   |
+|----------------------------------------------------------------------------|-----------------------------------------------------------|
+| `OPENAI_API_KEY`                                                           | API key for OpenAI when LLM features are enabled.         |
+| `XERO_CLIENT_ID`, `XERO_CLIENT_SECRET`, `XERO_REDIRECT_URI`, `XERO_SCOPES` | OAuth details for Xero.                                   |
+| `XERO_TENANT_ID`                                                           | Xero tenant identifier (resolved after auth if omitted).  |
+| `XERO_PAYMENT_ACCOUNT_CODE`                                                | Account code used when posting payments (default `101`).  |
+| `PAY_ON_DUE_DATE`                                                          | If `true`, date payments exactly on the invoice due date. |
+| `TIMEZONE`, `DEFAULT_SEED`, `FISCAL_YEAR_START_MONTH`                      | Optional service settings.                                |
+| `DATA_DIR`                                                                 | Base directory for catalogs and configuration files.      |
+| `RUNS_DIR`                                                                 | Directory where run artifacts are written.                |
+| `XERO_TOKEN_FILE`                                                          | Location of the OAuth token store.                        |
 
 All variables can be placed in a `.env` file in the project root.  See
 `src/synthap/config/settings.py` for the complete list of supported values.
@@ -104,6 +104,14 @@ poetry run python -m synthap.cli xero-status
 ```bash
 poetry run python -m synthap.cli generate -q "Generate 6 bills for the Q1 2023 pay for only 2"
 ```
+Where the prompt can include directives for the number of invoices, date ranges, vendors to use, and how many to pay.
+
+Examples are as follows:
+* "Generate 20 bills for yesterday"
+* "Generate 10000 bills for the financial year 2023"
+* "Generate 50 bills for 20-05-2025 for vendor ABC"
+* "Generate 10 bills for last month and pay all"
+* "Generate 15 bills for last week and pay only 5"
 
 Useful options:
 

@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     xero_client_secret: str = os.getenv("XERO_CLIENT_SECRET")
     xero_redirect_uri: str = os.getenv("XERO_REDIRECT_URI")
     xero_scopes: str = os.getenv("XERO_SCOPES")
-    xero_tenant_id: Optional[str] = os.getenv("XERO_TENANT_ID", default=None)
+    xero_tenant_id: Optional[str] = os.getenv("XERO_TENANT_ID", default="a325094c-dbc8-490a-9e5c-bdbd4f15eef5")
     xero_payment_account_code: str = os.getenv("XERO_PAYMENT_ACCOUNT_CODE", default="101")
     pay_on_due_date: bool = os.getenv("PAY_ON_DUE_DATE", default=False)
 
