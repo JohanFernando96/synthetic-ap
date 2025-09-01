@@ -101,6 +101,25 @@ def test_generate_payments_overdue(monkeypatch):
     assert payments[0]["Date"] > "2024-01-10"
 
 
+def test_generate_payments_overdue_count(monkeypatch):
+    invoices = [
+        {
+            "InvoiceID": "1",
+            "AmountDue": 100,
+            "DateString": "2024-01-01T00:00:00",
+            "DueDateString": "2024-01-10T00:00:00",
+        }
+    ]
+    monkeypatch.setattr(random, "randint", lambda a, b: 0)
+    monkeypatch.setattr(random, "sample", lambda seq, k: [0])
+    payments = generate_payments(
+        invoices,
+        account_code="101",
+        overdue_count=1,
+    )
+    assert payments[0]["Date"] > "2024-01-10"
+
+
 def test_select_invoices_to_pay_respects_config():
     all_refs = ["A", "B", "C"]
     rng = random.Random(42)
