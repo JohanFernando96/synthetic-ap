@@ -335,6 +335,7 @@ def insert(
             account_code=settings.xero_payment_account_code,
             pay_on_due_date=cfg.payments.pay_on_due_date,
             allow_overdue=cfg.payments.allow_overdue,
+            overdue_count=cfg.payments.overdue_count,
         )
 
         payment_records = []

@@ -47,6 +47,7 @@ class PaymentCfg(BaseModel):
     pay_on_due_date: bool = False
     allow_overdue: bool = False
     pay_when_unspecified: bool = False
+    overdue_count: int = 0
 
 
 def _config_dir(base_dir: str) -> Path:
