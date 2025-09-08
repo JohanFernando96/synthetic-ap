@@ -94,3 +94,11 @@ items:
     account_code: "453"
     tax_code: "INPUT"
     price_variance_pct: 0.10
+
+  - id: "00000000-0000-0000-0000-000000000001"
+    code: "AUTO-001"
+    name: "Auto Generated Item"
+    unit_price: 1.00
+    account_code: "453"
+    tax_code: "INPUT"
+    price_variance_pct: 0.10

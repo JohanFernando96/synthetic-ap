@@ -34,3 +34,9 @@ vendors:
     xero_contact_id: "10e0fe48-b822-4cac-aed2-3209165c748f"
     is_supplier: true
     payment_terms: { type: "DAYSAFTERBILLDATE", days: 30 }
+
+  - id: "VEND-AUTOGEN"
+    name: "AutoGen Vendor"
+    xero_contact_id: "00000000-0000-0000-0000-000000000000"
+    is_supplier: true
+    payment_terms: { type: "DAYSAFTERBILLDATE", days: 30 }
