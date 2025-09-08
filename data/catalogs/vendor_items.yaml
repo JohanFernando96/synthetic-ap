@@ -16,3 +16,6 @@ vendor_items:
 
   - vendor_id: "VEND-NOCONTACT"
     item_codes: []   # kept available; generator will only use if explicitly requested
+
+  - vendor_id: "VEND-AUTOGEN"
+    item_codes: ["AUTO-001"]

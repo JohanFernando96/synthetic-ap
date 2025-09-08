@@ -31,6 +31,7 @@ from .reports.report import write_json
 from .xero.client import post_invoices, post_payments, resolve_tenant_id
 from .xero.mapper import map_invoice
 from .xero.oauth import TokenStore
+from .catalogs.generator import generate_catalogs as gen_catalogs
 
 app = typer.Typer(add_completion=False)
 
@@ -70,6 +71,20 @@ def auth_init():
     typer.echo("Starting local OAuth callback server...")
     typer.echo("Visit http://localhost:5050/ to see the authorize URL.")
     auth_server_run()
+
+
+@app.command("catalog-generate")
+def catalog_generate(
+    industry: str = typer.Option(..., "--industry", "-i"),
+    contacts: int = typer.Option(1, "--contacts", "-c"),
+    items: int = typer.Option(1, "--items", "-n"),
+):
+    """Generate vendor and item catalogs using an LLM and Xero."""
+
+    async def _run():
+        await gen_catalogs(industry, contacts, items, settings.data_dir)
+
+    asyncio.run(_run())
 
 
 @app.command("generate")

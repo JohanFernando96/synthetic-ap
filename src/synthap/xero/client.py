@@ -113,3 +113,31 @@ async def post_payments(payments: list[dict[str, Any]]) -> dict[str, Any]:
         if r.status_code >= 400:
             _raise_with_context(r)
         return r.json()
+
+
+@retry(wait=wait_exponential_jitter(1, 3), stop=stop_after_attempt(5))
+async def upsert_contacts(
+    contacts: list[dict[str, Any]], *, use_put: bool = True
+) -> dict[str, Any]:
+    """Create or update contacts in Xero and return the API response."""
+    tok = TokenStore.load()
+    if not tok:
+        tok = await refresh_token_if_needed()
+    tenant_id, tok = await resolve_tenant_id(tok)
+    headers = _with_tenant(_auth_headers(tok), tenant_id)
+    payload = {"Contacts": contacts}
+
+    async with httpx.AsyncClient(timeout=60) as client:
+        request = client.put if use_put else client.post
+        r = await request(f"{XERO_BASE}/Contacts", json=payload, headers=headers)
+        if r.status_code == 401:
+            tok = await refresh_token_if_needed()
+            tenant_id, tok = await resolve_tenant_id(tok)
+            r = await request(
+                f"{XERO_BASE}/Contacts",
+                json=payload,
+                headers=_with_tenant(_auth_headers(tok), tenant_id),
+            )
+        if r.status_code >= 400:
+            _raise_with_context(r)
+        return r.json()
