@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import pandas as pd
-import yaml
 import streamlit as st
+import yaml
 
 from synthap.config.runtime_config import (
     AIConfig,
@@ -15,9 +15,9 @@ from synthap.config.runtime_config import (
     _defaults_path,
     _runtime_path,
     load_runtime_config,
+    reset_all,
     save_runtime_config,
 )
-from synthap.config.reset import reset_all
 from synthap.config.settings import settings
 
 
@@ -133,9 +133,9 @@ def main() -> None:
             _runtime_path(settings.data_dir).unlink(missing_ok=True)
             st.warning("Runtime configuration reset")
     with col2:
-        if st.button("Revert all data"):
+        if st.button("Reset data"):
             reset_all(settings.data_dir)
-            st.warning("All data reverted to defaults")
+            st.warning("Catalog and config files reset to defaults")
 
 
 if __name__ == "__main__":  # pragma: no cover - streamlit entry point

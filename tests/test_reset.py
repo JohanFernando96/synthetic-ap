@@ -1,7 +1,6 @@
-from pathlib import Path
 import subprocess
 
-from synthap.config.reset import reset_all
+from synthap.config.runtime_config import reset_all
 
 
 def test_reset_all_runs_git(monkeypatch, tmp_path):
