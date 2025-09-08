@@ -13,8 +13,9 @@ import typer
 from slugify import slugify
 from tenacity import RetryError
 
+from .catalogs.generator import generate_catalogs as gen_catalogs
 from .catalogs.loader import load_catalogs
-from .config.runtime_config import load_runtime_config
+from .config.runtime_config import load_runtime_config, reset_all
 from .config.settings import settings
 from .data.storage import to_rows, write_parquet
 
@@ -31,7 +32,6 @@ from .reports.report import write_json
 from .xero.client import post_invoices, post_payments, resolve_tenant_id
 from .xero.mapper import map_invoice
 from .xero.oauth import TokenStore
-from .catalogs.generator import generate_catalogs as gen_catalogs
 
 app = typer.Typer(add_completion=False)
 
@@ -71,6 +71,13 @@ def auth_init():
     typer.echo("Starting local OAuth callback server...")
     typer.echo("Visit http://localhost:5050/ to see the authorize URL.")
     auth_server_run()
+
+
+@app.command("reset")
+def reset_cli():
+    """Restore catalog and config files to repository defaults."""
+    reset_all(settings.data_dir)
+    typer.echo("Catalog and config files reset to repository defaults.")
 
 
 @app.command("catalog-generate")

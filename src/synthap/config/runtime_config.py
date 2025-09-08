@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -40,7 +41,7 @@ class RuntimeConfig(BaseModel):
     generator: GeneratorCfg = Field(default_factory=GeneratorCfg)
     artifacts: ArtifactsCfg = Field(default_factory=ArtifactsCfg)
     force_no_tax: bool = False
-    payments: "PaymentCfg" = Field(default_factory=lambda: PaymentCfg())
+    payments: PaymentCfg = Field(default_factory=lambda: PaymentCfg())
 
 
 class PaymentCfg(BaseModel):
@@ -99,3 +100,21 @@ def save_runtime_config(cfg: RuntimeConfig, base_dir: str | None = None) -> None
     runtime_path = _runtime_path(base_dir)
     raw = cfg.model_dump()
     runtime_path.write_text(yaml.safe_dump(raw, sort_keys=False), encoding="utf-8")
+
+
+def reset_all(base_dir: str | None = None) -> None:
+    """Revert catalog and config YAMLs back to repository defaults.
+
+    Parameters
+    ----------
+    base_dir:
+        Base data directory containing ``catalogs`` and ``config``.
+        Defaults to the configured ``settings.data_dir``.
+    """
+    base_dir = base_dir or settings.data_dir
+    base = Path(base_dir)
+    for sub in ("catalogs", "config"):
+        path = base / sub
+        if path.exists():
+            subprocess.run(["git", "checkout", "--", str(path)], check=True)
+            subprocess.run(["git", "clean", "-f", str(path)], check=True)
