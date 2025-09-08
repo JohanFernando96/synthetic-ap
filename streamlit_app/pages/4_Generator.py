@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import random
 import secrets
+from dataclasses import asdict
 from datetime import date
 
 import streamlit as st
 from slugify import slugify
 
-from synthap.ai.planner import plan_from_query
+from synthap.ai.planner import clamp_plan_to_today, plan_from_query
 from synthap.catalogs.loader import load_catalogs
 from synthap.cli import runs_dir
 from synthap.config.runtime_config import load_runtime_config
@@ -18,6 +19,7 @@ from synthap.data.storage import to_rows, write_parquet
 from synthap.engine.generator import generate_from_plan
 from synthap.engine.payments import select_invoices_to_pay
 from synthap.engine.validators import validate_invoices
+from synthap.nlp.parser import parse_nlp_to_query
 from synthap.reports.report import write_json
 
 
@@ -35,34 +37,49 @@ def main() -> None:
 
     cat = load_catalogs(settings.data_dir)
 
-    with st.form("gen_form"):
-        query = st.text_area(
-            "NLP query",
-            height=100,
-            placeholder="e.g., Generate 10 bills for last month and pay only 2",
-        )
-        st.caption(
-            "Examples: 'Generate 20 bills for yesterday', 'Generate 5 bills for vendor ABC'"
-        )
-        vendors = st.multiselect("Vendors", _vendor_options(cat))
-        max_lines = st.number_input("Max line items per invoice", min_value=1, value=5)
-        no_tax = st.checkbox("Generate without tax")
-        pay_count = st.number_input("Invoices to mark for payment", min_value=0, value=0)
-        overdue_count = st.number_input(
-            "Invoices allowed to be overdue",
-            min_value=0,
-            max_value=int(pay_count) if pay_count else None,
-            value=0,
-        )
-        pay_on_due = st.checkbox("Pay exactly on due date")
-        pay_before_due = st.checkbox("Pay before due date", disabled=pay_on_due)
-        allow_overdue = st.checkbox(
-            "Allow overdue payments",
-            disabled=pay_on_due or pay_before_due or overdue_count == 0,
-        )
-        submitted = st.form_submit_button("Generate")
+    query = st.text_area(
+        "NLP query",
+        height=100,
+        placeholder="e.g., Generate 10 bills for last month and pay only 2",
+    )
+    st.caption(
+        "Examples: 'Generate 20 bills for yesterday', 'Generate 5 bills for vendor ABC'"
+    )
 
-    if not submitted or not query:
+    parsed = None
+    error = None
+    if query.strip():
+        try:
+            parsed = parse_nlp_to_query(query, today=date.today(), catalogs=cat)
+        except Exception as e:  # pragma: no cover - UI feedback
+            error = str(e)
+
+    if parsed:
+        st.subheader("Detected fields")
+        st.json(asdict(parsed))
+    elif error:
+        st.error(error)
+
+    vendors = st.multiselect("Vendors", _vendor_options(cat))
+    max_lines = st.number_input("Max line items per invoice", min_value=1, value=5)
+    no_tax = st.checkbox("Generate without tax")
+    clamp_dates = st.checkbox("Limit dates to today", value=True)
+    pay_count = st.number_input("Invoices to mark for payment", min_value=0, value=0)
+    overdue_count = st.number_input(
+        "Invoices allowed to be overdue",
+        min_value=0,
+        max_value=int(pay_count) if pay_count else None,
+        value=0,
+    )
+    pay_on_due = st.checkbox("Pay exactly on due date")
+    pay_before_due = st.checkbox("Pay before due date", disabled=pay_on_due)
+    allow_overdue = st.checkbox(
+        "Allow overdue payments",
+        disabled=pay_on_due or pay_before_due or overdue_count == 0,
+    )
+
+    submitted = st.button("Generate", disabled=parsed is None)
+    if not submitted:
         return
 
     if pay_on_due and pay_before_due:
@@ -74,6 +91,8 @@ def main() -> None:
 
     cfg = load_runtime_config(settings.data_dir)
     plan = plan_from_query(query, cat, today=date.today())
+    if clamp_dates:
+        clamp_plan_to_today(plan, date.today())
 
     if vendors:
         ids = _vendor_name_to_id(cat, vendors)
@@ -134,6 +153,8 @@ def main() -> None:
     write_json(report, base / "generation_report.json")
 
     st.success(f"Generated run {run_id}")
+    st.cache_data.clear()
+    st.experimental_rerun()
 
 
 if __name__ == "__main__":  # pragma: no cover - streamlit entry point
