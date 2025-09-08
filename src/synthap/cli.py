@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import asyncio
+import json
+import random
 import secrets
 import random
 import json
 from pathlib import Path
 from datetime import date
+from pathlib import Path
 from typing import Optional
 
 import pandas as pd
@@ -13,18 +16,18 @@ import typer
 from slugify import slugify
 from tenacity import RetryError
 
-from .config.settings import settings
-from .config.runtime_config import load_runtime_config
 from .catalogs.loader import load_catalogs
+from .config.runtime_config import load_runtime_config
+from .config.settings import settings
+from .data.storage import to_rows, write_parquet
 
 # AI planner + generator
-from .ai.planner import plan_from_query
-from .ai.schema import Plan as AIPlan
 from .engine.generator import generate_from_plan
+from .engine.payments import generate_payments, select_invoices_to_pay
 
 # Validation, storage, mapping, reports
 from .engine.validators import validate_invoices
-from .data.storage import to_rows, write_parquet
+from .nlp.parser import parse_nlp_to_query
 from .reports.report import write_json
 from .xero.mapper import map_invoice
 from .nlp.parser import parse_nlp_to_query
@@ -58,7 +61,7 @@ def xero_status():
 
     async def _show():
         try:
-            t = await resolve_tenant_id(tok)
+            t, _ = await resolve_tenant_id(tok)
             typer.echo(f"Resolved tenantId: {t}")
         except Exception as e:
             typer.echo(f"Failed to resolve tenantId: {e}")
@@ -68,6 +71,8 @@ def xero_status():
 
 @app.command("auth-init")
 def auth_init():
+    from .xero.auth_server import run_server as auth_server_run
+
     typer.echo("Starting local OAuth callback server...")
     typer.echo("Visit http://localhost:5050/ to see the authorize URL.")
     auth_server_run()
@@ -102,6 +107,9 @@ def generate(
       - runs/<run_id>/xero_invoices_with_meta.json (if enabled)
       - runs/<run_id>/generation_report.json
     """
+    from .ai.planner import plan_from_query
+    from .ai.schema import Plan as AIPlan
+
     cat = load_catalogs(settings.data_dir)
     cfg = load_runtime_config(settings.data_dir)
 
@@ -176,7 +184,7 @@ def generate(
             pay_count = rng.randint(1, len(all_refs))
         if pay_count:
             pay_count = max(0, min(pay_count, len(all_refs)))
-            to_pay_refs = rng.sample(all_refs, pay_count)
+            to_pay_refs = rng.sample(all_refs, pay_co
     write_json({"run_id": run_id, "references": to_pay_refs}, base / "to_pay.json")
 
     gen_report = {
@@ -242,6 +250,7 @@ def insert(
 
     inv_df = pd.read_parquet(inv_path)
     line_df = pd.read_parquet(line_path)
+    cfg = load_runtime_config(settings.data_dir)
 
     payloads = []
     for ref, lines in line_df.groupby("reference"):
@@ -282,10 +291,13 @@ def insert(
         batch_size = 50
         total_ok, total_fail = 0, 0
         invoice_records = []
+        xero_log: list[dict[str, object]] = []
+
         for i in range(0, len(payloads), batch_size):
             batch = payloads[i : i + batch_size]
             try:
                 resp = await post_invoices(batch)
+                xero_log.append({"action": "post_invoices", "request": batch, "response": resp})
                 batch_invoices = resp.get("Invoices", [])
                 total_ok += len(batch_invoices)
                 for inv in batch_invoices:

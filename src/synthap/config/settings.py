@@ -1,11 +1,18 @@
+import os
 from typing import Optional
+from dotenv import load_dotenv
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field
+load_dotenv()
+
+
+load_dotenv()
+
 
 class Settings(BaseSettings):
     # LLM
-    openai_api_key: str = Field(alias="OPENAI_API_KEY", default="")
+    openai_api_key: str = os.getenv("OPENAI_API_KEY")
 
     # Xero
     xero_client_id: str = Field(alias="XERO_CLIENT_ID")
@@ -16,13 +23,14 @@ class Settings(BaseSettings):
     xero_payment_account_code: str = Field(alias="XERO_PAYMENT_ACCOUNT_CODE", default="001")
 
     # Service
-    timezone: str = Field(default="Australia/Melbourne", alias="TIMEZONE")
-    default_seed: int = Field(default=42, alias="DEFAULT_SEED")
-    fiscal_year_start_month: int = Field(default=7, alias="FISCAL_YEAR_START_MONTH")
-    data_dir: str = Field(default="./data", alias="DATA_DIR")
-    runs_dir: str = Field(default="./runs", alias="RUNS_DIR")
-    token_file: str = Field(default="./.xero_token.json", alias="XERO_TOKEN_FILE")
+    timezone: str = os.getenv("TIMEZONE")
+    default_seed: int = os.getenv("DEFAULT_SEED")
+    fiscal_year_start_month: int = os.getenv("FISCAL_YEAR_START_MONTH")
+    data_dir: str = os.getenv("DATA_DIR")
+    runs_dir: str = os.getenv("RUNS_DIR")
+    token_file: str = os.getenv("XERO_TOKEN_FILE")
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+
 
 settings = Settings()

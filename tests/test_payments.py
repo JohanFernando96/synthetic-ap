@@ -40,7 +40,7 @@ def test_generate_payments_builds_payloads():
     assert len(payments) == 2
     assert payments[0]["Account"]["Code"] == "001"
     assert payments[0]["Date"] == "2024-01-01"
-    assert all(p["Invoice"]["LineItems"] == [] for p in payments)
+    assert all(p["Invoice"]["LineItems"] == [] for p in payment
 
 
 def test_insert_writes_reports_with_xero_data(tmp_path, monkeypatch):

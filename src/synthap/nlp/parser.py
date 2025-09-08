@@ -1,10 +1,17 @@
 from __future__ import annotations
+import json
 import re
 from dataclasses import dataclass
 from datetime import date
 from typing import Optional
 
 from .periods import resolve_period_au  # AU fiscal / common phrases
+from ..catalogs.loader import Catalogs
+import os
+
+
+class QueryScopeError(ValueError):
+    """Raised when the user's request refers to unknown catalog entries."""
 
 @dataclass
 class ParsedQueryDateRange:
@@ -24,9 +31,9 @@ class ParsedQuery:
     pay_all: bool = False
 
 COUNT_PATTERNS = [
-    r"\bgenerate\s+(\d+)\b",
-    r"\bneed\s+(\d+)\b",
-    r"\b(\d+)\s+(?:bills|invoices)\b",
+    r"\bgenerate\s+(\d+(?:\.\d+)?)\b",
+    r"\bneed\s+(\d+(?:\.\d+)?)\b",
+    r"\b(\d+(?:\.\d+)?)\s+(?:bills|invoices)\b",
 ]
 
 VENDOR_PATTERNS = [
@@ -58,10 +65,13 @@ def _extract_int(patterns: list[str], text: str) -> Optional[int]:
     for p in patterns:
         m = re.search(p, text, flags=re.IGNORECASE)
         if m:
+            s = m.group(1)
+            if "." in s:
+                raise ValueError(f"Invalid non-integer number '{s}'")
             try:
-                return int(m.group(1))
+                return int(s)
             except ValueError:
-                pass
+                raise ValueError(f"Invalid number '{s}'")
     return None
 
 def _extract_vendor(text: str) -> Optional[str]:
@@ -90,9 +100,22 @@ def _extract_pay_info(text: str) -> tuple[Optional[int], bool]:
     all_flag = any(re.search(p, text, flags=re.IGNORECASE) for p in PAY_ALL_PATTERNS)
     return count, all_flag
 
-def parse_nlp_to_query(text: str, today: date) -> ParsedQuery:
     t = text.strip()
-    count = _extract_int(COUNT_PATTERNS, t) or 10
+
+    llm_data = None
+    api_key = os.getenv("OPENAI_API_KEY")
+    if use_llm and api_key:
+        try:
+            llm_data = _parse_with_llm(t, api_key)
+        except Exception:
+            llm_data = None
+
+    count = _ensure_int(llm_data.get("total_count")) if llm_data else None
+    if count is None:
+        count = _extract_int(COUNT_PATTERNS, t) or 10
+
+    if count <= 0:
+        raise ValueError("Bill count must be a positive integer")
 
     # AU-aware period resolver (handles 'Q1 2025', 'last quarter', 'yesterday', etc.)
     dr = resolve_period_au(t, today=today)
@@ -104,6 +127,7 @@ def parse_nlp_to_query(text: str, today: date) -> ParsedQuery:
     return ParsedQuery(
         total_count=count,
         date_range=ParsedQueryDateRange(start=dr.start, end=dr.end),
+        vendor_id=vendor_id,
         vendor_name=vendor_name,
         min_lines_per_invoice=min_lines,
         max_lines_per_invoice=max_lines,

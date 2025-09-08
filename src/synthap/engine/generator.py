@@ -153,7 +153,7 @@ def generate_from_plan(
             ref_suffix = "".join(
                 rng.choice("ABCDEFGHJKLMNPQRSTUVWXYZ23456789") for _ in range(4)
             )
-            vendor_slug = slugify(vendor.name)[:10].upper()
+            vendor_slug = slugify(vendor.name)[:10].rstrip("-").upper()
             reference = f"AP-{run_id[:6]}-{vendor_slug}-{seq:04d}-{ref_suffix}"
 
             inv_seq = inv_seq_by_vendor.get(vendor.id)
@@ -212,7 +212,7 @@ def generate_from_plan(
         ref_suffix = "".join(
             rng.choice("ABCDEFGHJKLMNPQRSTUVWXYZ23456789") for _ in range(4)
         )
-        vendor_slug = slugify(vendor.name)[:10].upper()
+        vendor_slug = slugify(vendor.name)[:10].rstrip("-").upper()
         reference = f"AP-{run_id[:6]}-{vendor_slug}-{seq:04d}-{ref_suffix}"
         inv_seq = inv_seq_by_vendor.get(vendor.id)
         if inv_seq is None:
