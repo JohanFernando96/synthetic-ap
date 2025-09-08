@@ -114,6 +114,10 @@ def main() -> None:
 
     st.success(f"Generated run {run_id}")
 
+    # Clear any cached data so other pages load fresh data and rerun the script
+    st.cache_data.clear()
+    st.experimental_rerun()
+
 
 if __name__ == "__main__":  # pragma: no cover - streamlit entry point
     main()

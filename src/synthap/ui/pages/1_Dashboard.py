@@ -12,6 +12,7 @@ from synthap.config.settings import settings
 from synthap.xero.oauth import TokenStore
 
 
+@st.cache_data
 def _status_table() -> pd.DataFrame:
     """Collect basic connectivity diagnostics."""
 
@@ -28,6 +29,7 @@ def _status_table() -> pd.DataFrame:
     )
 
 
+@st.cache_data
 def _last_seed() -> str | None:
     run_id = latest_run_id()
     if not run_id:
