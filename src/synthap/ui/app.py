@@ -15,6 +15,7 @@ def main() -> None:
     st.set_page_config(page_title="Synthetic AP", layout="wide")
     st.title("Synthetic AP")
     st.write("Use the sidebar to navigate between application sections.")
+    st.page_link("pages/0_Instructions", label="Setup instructions")
 
 
 if __name__ == "__main__":  # pragma: no cover - streamlit entry point
