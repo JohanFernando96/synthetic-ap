@@ -113,3 +113,26 @@ async def post_payments(payments: list[dict[str, Any]]) -> dict[str, Any]:
         if r.status_code >= 400:
             _raise_with_context(r)
         return r.json()
+
+
+@retry(wait=wait_exponential_jitter(1, 3), stop=stop_after_attempt(5))
+async def post_payments(payments: List[Dict[str, Any]]) -> Dict[str, Any]:
+    tok = TokenStore.load()
+    if not tok:
+        tok = await refresh_token_if_needed()
+
+    tenant_id = await resolve_tenant_id(tok)
+    headers = _with_tenant(_auth_headers(tok), tenant_id)
+    payload = {"Payments": payments}
+
+    async with httpx.AsyncClient(timeout=60) as client:
+        r = await client.put(f"{XERO_BASE}/Payments", json=payload, headers=headers)
+        if r.status_code == 401:
+            tok = await refresh_token_if_needed()
+            tenant_id = await resolve_tenant_id(tok)
+            r = await client.put(
+                f"{XERO_BASE}/Payments", json=payload, headers=_with_tenant(_auth_headers(tok), tenant_id)
+            )
+        if r.status_code >= 400:
+            _raise_with_context(r)
+        return r.json()

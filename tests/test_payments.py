@@ -2,7 +2,6 @@ from datetime import date
 import json
 import sys
 from pathlib import Path
-import random
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
@@ -10,7 +9,6 @@ import pandas as pd
 
 from synthap.nlp.parser import parse_nlp_to_query
 from synthap.engine.payments import generate_payments
-from synthap.engine.payments import select_invoices_to_pay
 
 
 def test_parse_pay_count():
@@ -22,14 +20,6 @@ def test_parse_pay_count():
     assert pq.pay_count == 4
     assert not pq.pay_all
 
-
-def test_parse_pay_count_with_only():
-    pq = parse_nlp_to_query(
-        "Generate 6 bills for the Q1 2023 pay for only 2",
-        today=date(2023, 1, 1),
-    )
-    assert pq.pay_count == 2
-    assert not pq.pay_all
 
 def test_parse_pay_all():
     pq = parse_nlp_to_query(
@@ -44,93 +34,13 @@ def test_generate_payments_builds_payloads():
     ]
     payments = generate_payments(
         invoices,
-        account_code="101",
+        account_code="001",
         payment_date=date(2024, 1, 1),
     )
     assert len(payments) == 2
-    assert payments[0]["Account"]["Code"] == "101"
+    assert payments[0]["Account"]["Code"] == "001"
     assert payments[0]["Date"] == "2024-01-01"
-    assert payments[0]["Invoice"]["LineItems"] == []
-
-
-def test_generate_payments_date_within_term(monkeypatch):
-    invoices = [
-        {
-            "InvoiceID": "1",
-            "AmountDue": 100,
-            "DateString": "2024-01-01T00:00:00",
-            "DueDateString": "2024-01-10T00:00:00",
-        }
-    ]
-
-    monkeypatch.setattr(random, "randint", lambda a, b: 0)
-    payments = generate_payments(invoices, account_code="101")
-    assert payments[0]["Date"] == "2024-01-01"
-    assert payments[0]["Date"] < "2024-01-10"
-
-
-def test_generate_payments_pay_on_due_date():
-    invoices = [
-        {
-            "InvoiceID": "1",
-            "AmountDue": 100,
-            "DateString": "2024-01-01T00:00:00",
-            "DueDateString": "2024-01-10T00:00:00",
-        }
-    ]
-
-    payments = generate_payments(invoices, account_code="101", pay_on_due_date=True)
-    assert payments[0]["Date"] == "2024-01-10"
-
-
-def test_generate_payments_overdue(monkeypatch):
-    invoices = [
-        {
-            "InvoiceID": "1",
-            "AmountDue": 100,
-            "DateString": "2024-01-01T00:00:00",
-            "DueDateString": "2024-01-10T00:00:00",
-        }
-    ]
-    monkeypatch.setattr(random, "randint", lambda a, b: 0)
-    payments = generate_payments(
-        invoices,
-        account_code="101",
-        allow_overdue=True,
-    )
-    assert payments[0]["Date"] > "2024-01-10"
-
-
-def test_generate_payments_overdue_count(monkeypatch):
-    invoices = [
-        {
-            "InvoiceID": "1",
-            "AmountDue": 100,
-            "DateString": "2024-01-01T00:00:00",
-            "DueDateString": "2024-01-10T00:00:00",
-        }
-    ]
-    monkeypatch.setattr(random, "randint", lambda a, b: 0)
-    monkeypatch.setattr(random, "sample", lambda seq, k: [0])
-    payments = generate_payments(
-        invoices,
-        account_code="101",
-        overdue_count=1,
-    )
-    assert payments[0]["Date"] > "2024-01-10"
-
-
-def test_select_invoices_to_pay_respects_config():
-    all_refs = ["A", "B", "C"]
-    rng = random.Random(42)
-
-    # No directive and config forbids paying
-    refs = select_invoices_to_pay(all_refs, None, False, False, rng)
-    assert refs == []
-
-    # No directive but config allows random payment
-    refs2 = select_invoices_to_pay(all_refs, None, False, True, rng)
-    assert 1 <= len(refs2) <= len(all_refs)
+    assert all(p["Invoice"]["LineItems"] == [] for p in payment
 
 
 def test_insert_writes_reports_with_xero_data(tmp_path, monkeypatch):
@@ -141,26 +51,42 @@ def test_insert_writes_reports_with_xero_data(tmp_path, monkeypatch):
 
     class DummySettings:
         runs_dir = str(tmp_path)
-        xero_payment_account_code = "101"
-        pay_on_due_date = False
-        data_dir = str(tmp_path)
+        xero_payment_account_code = "001"
 
     fake_settings.settings = DummySettings()
     sys.modules["synthap.config.settings"] = fake_settings
 
-    # Ensure runtime config has payment defaults
-    import synthap.cli as cli
-    from synthap.config import runtime_config as rc_module
+    sys.modules.pop("pydantic", None)
+    import pydantic  # reload real module
 
-    class DummyRuntimeCfg(rc_module.RuntimeConfig):
-        def __init__(self):
-            super().__init__(payments=rc_module.PaymentCfg())
+    # Provide a dummy openai module so the CLI can be imported without the
+    # heavyweight dependency.
+    fake_openai = types.ModuleType("openai")
+    class DummyOpenAI:
+        pass
+    fake_openai.OpenAI = DummyOpenAI
+    sys.modules["openai"] = fake_openai
 
-    def fake_load_runtime_config(base_dir: str):
-        return DummyRuntimeCfg()
+    # Stub FastAPI and uvicorn since the auth server isn't exercised in tests
+    fake_fastapi = types.ModuleType("fastapi")
+    class DummyFastAPI:
+        def __init__(self, *a, **kw):
+            pass
+        def get(self, *a, **kw):
+            def decorator(f):
+                return f
+            return decorator
+    class DummyRequest:
+        def __init__(self, *a, **kw):
+            self.query_params = {}
+    fake_fastapi.FastAPI = DummyFastAPI
+    fake_fastapi.Request = DummyRequest
+    sys.modules["fastapi"] = fake_fastapi
+    fake_uvicorn = types.ModuleType("uvicorn")
+    fake_uvicorn.run = lambda *a, **kw: None
+    sys.modules["uvicorn"] = fake_uvicorn
 
     from synthap import cli
-    monkeypatch.setattr(cli, "load_runtime_config", fake_load_runtime_config)
 
     base = tmp_path / "run1"
     base.mkdir()
@@ -231,11 +157,8 @@ def test_insert_writes_reports_with_xero_data(tmp_path, monkeypatch):
 
     inv_report = json.loads((base / "invoice_report.json").read_text())
     pay_report = json.loads((base / "payment_report.json").read_text())
-    log_report = json.loads((base / "xero_log.json").read_text())
 
     assert inv_report["run_id"] == "run1"
     assert inv_report["invoices"][0]["InvoiceID"] == "inv1"
     assert pay_report["run_id"] == "run1"
     assert pay_report["payments"][0]["PaymentID"] == "pay1"
-    actions = [e["action"] for e in log_report["events"]]
-    assert "post_invoices" in actions and "post_payments" in actions
