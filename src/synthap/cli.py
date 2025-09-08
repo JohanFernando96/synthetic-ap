@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import random
 import secrets
 from datetime import date
@@ -35,9 +36,17 @@ from .xero.oauth import TokenStore
 
 app = typer.Typer(add_completion=False)
 
+logger = logging.getLogger(__name__)
+
 
 def runs_dir() -> Path:
     p = Path(settings.runs_dir)
+    p.mkdir(parents=True, exist_ok=True)
+    return p
+
+
+def logs_dir() -> Path:
+    p = Path(getattr(settings, "logs_dir", "logs"))
     p.mkdir(parents=True, exist_ok=True)
     return p
 
@@ -241,6 +250,8 @@ def generate(
     }
     write_json(gen_report, base / "generation_report.json")
 
+    logger.info("Generated %s invoices for run %s", len(invoices), run_id)
+
     typer.echo(f"Generated & staged {len(invoices)} invoices at {base}")
     typer.echo(f"Plan: {base / 'plan.json'}")
 
@@ -332,11 +343,13 @@ def insert(
                 err = str(e.last_attempt.exception())
                 xero_log.append({"action": "post_invoices", "request": batch, "error": err})
                 typer.echo(f"Batch {i//batch_size} failed: {err}")
+                logger.error("Batch %s failed to post invoices: %s", i // batch_size, err)
             except Exception as e:
                 total_fail += len(batch)
                 err = str(e)
                 xero_log.append({"action": "post_invoices", "request": batch, "error": err})
                 typer.echo(f"Batch {i//batch_size} failed: {err}")
+                logger.error("Batch %s failed to post invoices: %s", i // batch_size, err)
 
         # Persist invoice data so payment runs can match references to IDs.
         inv_report_path = base / "invoice_report.json"
@@ -378,10 +391,12 @@ def insert(
                 err = str(e.last_attempt.exception())
                 xero_log.append({"action": "post_payments", "request": payments, "error": err})
                 typer.echo(f"Payment batch failed: {err}")
+                logger.error("Payment batch failed: %s", err)
             except Exception as e:
                 err = str(e)
                 xero_log.append({"action": "post_payments", "request": payments, "error": err})
                 typer.echo(f"Payment batch failed: {err}")
+                logger.error("Payment batch failed: %s", err)
         else:
             typer.echo(f"[{run_id}] No payments generated.")
 

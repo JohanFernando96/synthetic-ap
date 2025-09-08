@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     fiscal_year_start_month: int = os.getenv("FISCAL_YEAR_START_MONTH")
     data_dir: str = os.getenv("DATA_DIR")
     runs_dir: str = os.getenv("RUNS_DIR")
+    logs_dir: str = os.getenv("LOGS_DIR", default="logs")
     token_file: str = os.getenv("XERO_TOKEN_FILE")
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
