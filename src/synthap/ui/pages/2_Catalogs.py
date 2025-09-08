@@ -9,13 +9,19 @@ from synthap.catalogs.loader import load_catalogs
 from synthap.config.settings import settings
 
 
+@st.cache_data
 def _as_df(records: list[dict]) -> pd.DataFrame:
     return pd.DataFrame(records)
 
 
+@st.cache_data
+def _load_catalogs(base_dir: str):
+    return load_catalogs(base_dir)
+
+
 def main() -> None:
     st.title("Catalogs")
-    cat = load_catalogs(settings.data_dir)
+    cat = _load_catalogs(settings.data_dir)
 
     st.subheader("Vendors")
     st.dataframe(_as_df([v.model_dump() for v in cat.vendors]))
