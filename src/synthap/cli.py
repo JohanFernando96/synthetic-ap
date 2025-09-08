@@ -106,6 +106,11 @@ def generate(
         "--price-variance-pct",
         help="Override price variance percentage (e.g., 0.05 for ±5%)",
     ),
+    limit_to_today: bool = typer.Option(
+        False,
+        "--limit-to-today/--allow-future",
+        help="Clamp plan's date range to today to avoid future-dated invoices",
+    ),
 ):
     """
     AI Plan -> sanitize -> generate -> validate -> stage (no Xero insert).
@@ -116,7 +121,7 @@ def generate(
       - runs/<run_id>/xero_invoices_with_meta.json (if enabled)
       - runs/<run_id>/generation_report.json
     """
-    from .ai.planner import plan_from_query
+    from .ai.planner import clamp_plan_to_today, plan_from_query
     from .ai.schema import Plan as AIPlan
 
     cat = load_catalogs(settings.data_dir)
@@ -127,6 +132,8 @@ def generate(
 
     # 1) AI plan (with built-in guardrails + AU fiscal periods)
     plan: AIPlan = plan_from_query(query, cat, today=date.today())
+    if limit_to_today:
+        clamp_plan_to_today(plan, date.today())
     parsed_query = parse_nlp_to_query(query, today=date.today(), catalogs=cat, use_llm=True)
 
     # Apply CLI overrides (final say)
