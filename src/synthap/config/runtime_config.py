@@ -50,6 +50,10 @@ class PaymentCfg(BaseModel):
     overdue_count: int = 0
 
 
+# Resolve forward references now that PaymentCfg is defined
+RuntimeConfig.model_rebuild()
+
+
 def _config_dir(base_dir: str) -> Path:
     p = Path(base_dir) / "config"
     p.mkdir(parents=True, exist_ok=True)
