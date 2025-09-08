@@ -81,6 +81,23 @@ def _sanitize_plan(cat: Catalogs, plan: Plan, cfg) -> Plan:
 
     return plan
 
+
+def clamp_plan_to_today(plan: Plan, today: date) -> Plan:
+    """Clamp a plan's date range so it does not extend beyond ``today``.
+
+    If the plan's ``end`` date is in the future relative to ``today`` the
+    ``end`` is set to ``today``.  If the ``start`` date is also in the future it
+    is likewise moved to ``today`` to avoid an invalid range.
+
+    The function mutates and returns the provided ``plan`` for convenience.
+    """
+
+    if plan.date_range.end > today:
+        plan.date_range.end = today
+        if plan.date_range.start > today:
+            plan.date_range.start = today
+    return plan
+
 def plan_from_query(query: str, cat: Catalogs, today: date) -> Plan:
     cfg = load_runtime_config(settings.data_dir)
     base_range = resolve_period_au(query, today=today)
