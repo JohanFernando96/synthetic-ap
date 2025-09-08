@@ -1,6 +1,7 @@
 from __future__ import annotations
 import json
 import re
+import difflib
 from dataclasses import dataclass
 from datetime import date
 from typing import Optional
@@ -62,6 +63,33 @@ PAY_ALL_PATTERNS = [
     r"pay all",
     r"pay every(thing| bill)",
 ]
+
+
+PERIOD_PHRASES = [
+    "yesterday",
+    "today",
+    "last week",
+    "last month",
+    "last quarter",
+]
+
+
+def _correct_period_phrases(text: str) -> str:
+    """Use fuzzy matching to fix near-miss period phrases."""
+    words = text.split()
+    lower = [w.lower() for w in words]
+    for phrase in PERIOD_PHRASES:
+        parts = phrase.split()
+        n = len(parts)
+        for i in range(len(words) - n + 1):
+            segment = " ".join(lower[i : i + n])
+            if segment == phrase:
+                continue
+            ratio = difflib.SequenceMatcher(None, segment, phrase).ratio()
+            if ratio >= 0.8:
+                words[i : i + n] = phrase.split()
+                lower[i : i + n] = phrase.split()
+    return " ".join(words)
 
 
 def _ensure_int(value: Optional[object]) -> Optional[int]:
@@ -150,7 +178,7 @@ def parse_nlp_to_query(
     catalogs: Catalogs | None = None,
     use_llm: bool = False,
 ) -> ParsedQuery:
-    t = text.strip()
+    t = _correct_period_phrases(text.strip())
 
     llm_data = None
     api_key = os.getenv("OPENAI_API_KEY")
@@ -177,9 +205,15 @@ def parse_nlp_to_query(
     vendor_id = None
     if catalogs and vendor_name:
         name_map = {v.name.lower(): v for v in catalogs.vendors}
-        v = name_map.get(vendor_name.lower())
+        key = vendor_name.lower()
+        v = name_map.get(key)
         if not v:
-            raise QueryScopeError(f"Query out of scope: unknown vendor '{vendor_name}'")
+            close = difflib.get_close_matches(key, list(name_map.keys()), n=1, cutoff=0.8)
+            if close:
+                v = name_map[close[0]]
+                vendor_name = v.name
+            else:
+                raise QueryScopeError(f"Query out of scope: unknown vendor '{vendor_name}'")
         item_codes = catalogs.vendor_items.get(v.id, [])
         if not item_codes:
             raise QueryScopeError(
