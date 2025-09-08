@@ -9,7 +9,7 @@ from datetime import date
 import streamlit as st
 from slugify import slugify
 
-from synthap.ai.planner import plan_from_query
+from synthap.ai.planner import clamp_plan_to_today, plan_from_query
 from synthap.catalogs.loader import load_catalogs
 from synthap.cli import runs_dir
 from synthap.config.runtime_config import load_runtime_config
@@ -40,6 +40,7 @@ def main() -> None:
         vendors = st.multiselect("Vendors", _vendor_options(cat))
         max_lines = st.number_input("Max line items per invoice", min_value=1, value=5)
         no_tax = st.checkbox("Generate without tax")
+        clamp_dates = st.checkbox("Limit dates to today", value=True)
         pay_count = st.number_input("Invoices to mark for payment", min_value=0, value=0)
         pay_on_due = st.checkbox("Pay exactly on due date")
         allow_overdue = st.checkbox("Allow overdue payments")
@@ -51,6 +52,8 @@ def main() -> None:
 
     cfg = load_runtime_config(settings.data_dir)
     plan = plan_from_query(query, cat, today=date.today())
+    if clamp_dates:
+        clamp_plan_to_today(plan, date.today())
 
     if vendors:
         ids = _vendor_name_to_id(cat, vendors)
