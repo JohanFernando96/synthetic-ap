@@ -1,6 +1,6 @@
-# Synthetic AP
+# Synthetic Data Generation App
 
-Synthetic AP generates realistic accounts payable invoices and can insert them
+Synthetic Data Generation App generates realistic accounts payable invoices and can insert them
 into a Xero sandbox for demos or testing.  The generator uses catalog data and
 optionally an OpenAI model to plan invoice mixes and craft line item
 descriptions.  Run artifacts and reports make it easy to audit the process or
@@ -21,17 +21,6 @@ build further analytics.
 
 3. (Optional) install development dependencies with
    `poetry install --with dev`.
-
-## Running the Streamlit frontend
-
-Launch the user interface with:
-
-```
-poetry run streamlit
-```
-
-This opens a multi-page dashboard for exploring catalogs, tweaking
-configuration, browsing runs and generating new invoice data.
 
 ## Environment variables
 
@@ -173,26 +162,4 @@ pytest -q
 
 Running the tests ensures that configuration parsing, invoice generation and
 Xero integration helpers work as expected.
-
-## Invoice insertion and payment reports
-
-Run `synthap generate` to stage invoices and `synthap insert` to post them to
-Xero. During generation the tool records which staged invoices should later be
-paid in `to_pay.json`. After insertion the application writes several JSON
-reports to the run directory (`runs/<run_id>`):
-
-- `insertion_report.json` – summary counts of inserted invoices and payments
-  made.
-- `invoice_report.json` – raw invoice records returned by the Xero Invoices
-  API, including the assigned `InvoiceID` values.
-- `payment_report.json` – raw payment records returned by the Xero Payments
-  API.
-- `to_pay.json` – references for staged invoices that should be paid; used to
-  construct the Xero payment payload after invoice insertion.
-
-The generator can understand phrases like "pay for 4 bills", "pay for all", or
-leave payment count unspecified (random subset). It records the chosen invoices
-in `to_pay.json`, and the `insert` command first posts all invoices to Xero and
-then pays only those listed. The Xero account used for payments is configured
-via the `XERO_PAYMENT_ACCOUNT_CODE` setting.
 

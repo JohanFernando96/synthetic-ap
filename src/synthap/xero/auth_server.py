@@ -1,12 +1,14 @@
 from fastapi import FastAPI, Request
 import uvicorn
 from ..config.settings import settings
-from .oauth import exchange_code_for_token, build_authorize_url
+from .oauth import exchange_code_for_token, build_authorize_url, TokenStore
 
 app = FastAPI()
 
 @app.get("/")
 async def root():
+    # Clear any existing tokens to force a fresh authentication
+    TokenStore.clear()
     url = build_authorize_url()
     return {
         "message": "Open the authorize URL in your browser, sign in, and consent.",

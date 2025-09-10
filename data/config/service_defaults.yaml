@@ -12,7 +12,7 @@ ai:
   enabled: true
   model: "gpt-4o"
   temperature: 0.2
-  max_vendors: 6
+  max_vendors: 5
   line_item_description_enabled: false
   line_item_description_prompt: "Write a concise, single-line invoice item description for: '{item_name}', combining quantity, size, and product name naturally without using labels or categories."
 

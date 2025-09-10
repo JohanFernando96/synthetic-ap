@@ -14,5 +14,3 @@ vendor_items:
   - vendor_id: "VEND-SYDSTEEL"
     item_codes: ["SS-100","SS-250"]
 
-  - vendor_id: "VEND-NOCONTACT"
-    item_codes: []   # kept available; generator will only use if explicitly requested

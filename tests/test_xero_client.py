@@ -1,8 +1,9 @@
 import asyncio
-import httpx
 import sys
-from pathlib import Path
 import types
+from pathlib import Path
+
+import httpx
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
@@ -11,13 +12,13 @@ fake_settings = types.ModuleType("synthap.config.settings")
 
 class DummySettings:
     xero_tenant_id = None
-    xero_payment_account_code = "001"
+    xero_payment_account_code = "101"
 
 
 fake_settings.settings = DummySettings()
 sys.modules["synthap.config.settings"] = fake_settings
 
-from synthap.xero import client as xc
+from synthap.xero import client as xc  # noqa: E402
 
 
 def test_post_payments_uses_put(monkeypatch):
@@ -38,7 +39,7 @@ def test_post_payments_uses_put(monkeypatch):
     monkeypatch.setattr(xc.TokenStore, "load", staticmethod(lambda: {"access_token": "tok"}))
 
     async def fake_resolve(tok):
-        return "tenant"
+        return "tenant", tok
 
     monkeypatch.setattr(xc, "resolve_tenant_id", fake_resolve)
 

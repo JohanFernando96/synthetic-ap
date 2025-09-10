@@ -15,12 +15,14 @@ class Settings(BaseSettings):
     openai_api_key: str = os.getenv("OPENAI_API_KEY")
 
     # Xero
-    xero_client_id: str = Field(alias="XERO_CLIENT_ID")
-    xero_client_secret: str = Field(alias="XERO_CLIENT_SECRET")
-    xero_redirect_uri: str = Field(alias="XERO_REDIRECT_URI")
-    xero_scopes: str = Field(alias="XERO_SCOPES")
-    xero_tenant_id: Optional[str] = Field(alias="XERO_TENANT_ID", default=None)
-    xero_payment_account_code: str = Field(alias="XERO_PAYMENT_ACCOUNT_CODE", default="001")
+    xero_client_id: str = os.getenv("XERO_CLIENT_ID")
+    xero_client_secret: str = os.getenv("XERO_CLIENT_SECRET")
+    xero_redirect_uri: str = os.getenv("XERO_REDIRECT_URI")
+    xero_scopes: str = os.getenv("XERO_SCOPES")
+    # Remove the default tenant ID
+    xero_tenant_id: Optional[str] = None
+    xero_payment_account_code: str = os.getenv("XERO_PAYMENT_ACCOUNT_CODE", default="101")
+    pay_on_due_date: bool = os.getenv("PAY_ON_DUE_DATE", default=False)
 
     # Service
     timezone: str = os.getenv("TIMEZONE")

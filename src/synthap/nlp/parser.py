@@ -49,10 +49,12 @@ LINE_RANGE_PATTERNS = [
 ]
 
 PAY_COUNT_PATTERNS = [
-    r"pay for (\d+)",
-    r"pay (\d+)",
-    r"pay for (\d+) bills?",
-    r"pay (\d+) bills?",
+    r"pay for only (\d+(?:\.\d+)?)",
+    r"pay only (\d+(?:\.\d+)?)",
+    r"pay for (\d+(?:\.\d+)?) bills?",
+    r"pay (\d+(?:\.\d+)?) bills?",
+    r"pay for (\d+(?:\.\d+)?)",
+    r"pay (\d+(?:\.\d+)?)",
 ]
 
 PAY_ALL_PATTERNS = [
@@ -60,6 +62,48 @@ PAY_ALL_PATTERNS = [
     r"pay all",
     r"pay every(thing| bill)",
 ]
+
+
+def _ensure_int(value: Optional[object]) -> Optional[int]:
+    """Convert a value to int if possible, validating integers."""
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        raise ValueError("Invalid number 'bool'")
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float):
+        if value.is_integer():
+            return int(value)
+        raise ValueError(f"Invalid non-integer number '{value}'")
+    if isinstance(value, str):
+        if value.strip().isdigit():
+            return int(value)
+        raise ValueError(f"Invalid number '{value}'")
+    raise ValueError(f"Invalid number '{value}'")
+
+
+def _parse_with_llm(text: str, api_key: str) -> dict:
+    """Use an LLM to extract structured fields from the query."""
+    from openai import OpenAI
+
+    client = OpenAI(api_key=api_key)
+    system = (
+        "You parse accounts payable generation requests and extract"\
+        " fields. Return JSON with keys: total_count, vendor_name,"\
+        " min_lines_per_invoice, max_lines_per_invoice, pay_count, pay_all."
+    )
+    user = {"query": text}
+    resp = client.chat.completions.create(
+        model="gpt-4o-mini",
+        temperature=0,
+        response_format={"type": "json_object"},
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user", "content": json.dumps(user)},
+        ],
+    )
+    return json.loads(resp.choices[0].message.content)
 
 def _extract_int(patterns: list[str], text: str) -> Optional[int]:
     for p in patterns:
@@ -100,6 +144,12 @@ def _extract_pay_info(text: str) -> tuple[Optional[int], bool]:
     all_flag = any(re.search(p, text, flags=re.IGNORECASE) for p in PAY_ALL_PATTERNS)
     return count, all_flag
 
+def parse_nlp_to_query(
+    text: str,
+    today: date,
+    catalogs: Catalogs | None = None,
+    use_llm: bool = False,
+) -> ParsedQuery:
     t = text.strip()
 
     llm_data = None
@@ -120,9 +170,60 @@ def _extract_pay_info(text: str) -> tuple[Optional[int], bool]:
     # AU-aware period resolver (handles 'Q1 2025', 'last quarter', 'yesterday', etc.)
     dr = resolve_period_au(t, today=today)
 
-    vendor_name = _extract_vendor(t)
-    min_lines, max_lines = _extract_line_range(t)
-    pay_count, pay_all = _extract_pay_info(t)
+    vendor_name = llm_data.get("vendor_name") if llm_data else None
+    if not vendor_name:
+        vendor_name = _extract_vendor(t)
+
+    vendor_id = None
+    if catalogs and vendor_name:
+        name_map = {v.name.lower(): v for v in catalogs.vendors}
+        v = name_map.get(vendor_name.lower())
+        if not v:
+            raise QueryScopeError(f"Query out of scope: unknown vendor '{vendor_name}'")
+        item_codes = catalogs.vendor_items.get(v.id, [])
+        if not item_codes:
+            raise QueryScopeError(
+                f"Query out of scope: vendor '{vendor_name}' has no items"
+            )
+        item_map = {i.code: i for i in catalogs.items}
+        account_codes = {a.code for a in catalogs.accounts}
+        tax_codes = {t.code for t in catalogs.tax_codes}
+        for code in item_codes:
+            it = item_map.get(code)
+            if not it:
+                raise QueryScopeError(
+                    f"Query out of scope: unknown item '{code}' for vendor '{vendor_name}'"
+                )
+            if it.account_code not in account_codes:
+                raise QueryScopeError(
+                    f"Query out of scope: item '{code}' missing account '{it.account_code}'"
+                )
+            if it.tax_code not in tax_codes:
+                raise QueryScopeError(
+                    f"Query out of scope: item '{code}' missing tax code '{it.tax_code}'"
+                )
+        vendor_id = v.id
+
+    if llm_data:
+        min_lines = _ensure_int(llm_data.get("min_lines_per_invoice"))
+        max_lines = _ensure_int(llm_data.get("max_lines_per_invoice"))
+        pay_count = _ensure_int(llm_data.get("pay_count"))
+        pay_all = bool(llm_data.get("pay_all"))
+    else:
+        min_lines = max_lines = pay_count = None
+        pay_all = False
+
+    if min_lines is None or max_lines is None:
+        lr_min, lr_max = _extract_line_range(t)
+        if min_lines is None:
+            min_lines = lr_min
+        if max_lines is None:
+            max_lines = lr_max
+
+    if pay_count is None:
+        pc, pa = _extract_pay_info(t)
+        pay_count = pc if pc is not None else pay_count
+        pay_all = pa or pay_all
 
     return ParsedQuery(
         total_count=count,

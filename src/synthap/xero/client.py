@@ -19,12 +19,7 @@ def _auth_headers(tok: dict) -> dict[str, str]:
     }
 
 async def resolve_tenant_id(tok: dict) -> tuple[str, dict]:
-    """Resolve tenant ID, refreshing tokens on 401 responses.
-
-    Returns a tuple of ``(tenant_id, token)`` where ``token`` is potentially
-    refreshed.  The tenant ID is cached after first resolution unless explicitly
-    provided via configuration.
-    """
+    """Resolve tenant ID, refreshing tokens on 401 responses."""
 
     global _TENANT_CACHE
     if settings.xero_tenant_id and settings.xero_tenant_id != "REPLACE_ME":
@@ -35,6 +30,7 @@ async def resolve_tenant_id(tok: dict) -> tuple[str, dict]:
     async with httpx.AsyncClient(timeout=30) as client:
         r = await client.get(CONN_URL, headers=_auth_headers(tok))
         if r.status_code == 401:
+            # Refresh the token if unauthorized
             tok = await refresh_token_if_needed()
             r = await client.get(CONN_URL, headers=_auth_headers(tok))
         r.raise_for_status()
@@ -43,6 +39,9 @@ async def resolve_tenant_id(tok: dict) -> tuple[str, dict]:
         for c in conns:
             if c.get("tenantType") == "ORGANISATION" and c.get("tenantId"):
                 _TENANT_CACHE = c["tenantId"]
+                # Save the tenant_id in the token file for future use
+                tok["tenant_id"] = _TENANT_CACHE
+                TokenStore.save(tok)
                 return _TENANT_CACHE, tok
         raise RuntimeError(
             "No Xero organisation connection found for this token. Check app consent."
@@ -55,9 +54,9 @@ def _with_tenant(headers: dict[str, str], tenant_id: str) -> dict[str, str]:
 
 def _raise_with_context(resp: httpx.Response) -> None:
     try:
-        body = resp.text
+        body = resp.json()  # Attempt to parse JSON response
     except Exception:
-        body = "<no body>"
+        body = resp.text  # Fallback to raw text if JSON parsing fails
     msg = (
         f"HTTP {resp.status_code} {resp.reason_phrase} "
         f"at {resp.request.method} {resp.request.url}\n{body}"
@@ -66,8 +65,29 @@ def _raise_with_context(resp: httpx.Response) -> None:
     # if somehow not raised:
     raise httpx.HTTPStatusError(message=msg, request=resp.request, response=resp)
 
+def validate_invoice_payload(invoices: list[dict[str, Any]]) -> None:
+    for invoice in invoices:
+        if not invoice.get("InvoiceNumber"):
+            raise ValueError("InvoiceNumber is required")
+        if not invoice.get("Contact", {}).get("ContactID"):
+            raise ValueError("ContactID is required")
+        if not invoice.get("LineItems"):
+            raise ValueError("At least one LineItem is required")
+        for line_item in invoice["LineItems"]:
+            if not line_item.get("Description"):
+                raise ValueError("LineItem Description is required")
+            if not line_item.get("Quantity"):
+                raise ValueError("LineItem Quantity is required")
+            if not line_item.get("UnitAmount"):
+                raise ValueError("LineItem UnitAmount is required")
+            if not line_item.get("AccountCode"):
+                raise ValueError("LineItem AccountCode is required")
+            if not line_item.get("TaxType"):
+                raise ValueError("LineItem TaxType is required")
+
 @retry(wait=wait_exponential_jitter(1, 3), stop=stop_after_attempt(5))
 async def post_invoices(invoices: list[dict[str, Any]]) -> dict[str, Any]:
+    validate_invoice_payload(invoices)  # Validate payload before sending
     tok = TokenStore.load()
     if not tok:
         tok = await refresh_token_if_needed()
@@ -87,7 +107,8 @@ async def post_invoices(invoices: list[dict[str, Any]]) -> dict[str, Any]:
                 headers=_with_tenant(_auth_headers(tok), tenant_id),
             )
         if r.status_code >= 400:
-            _raise_with_context(r)
+            print("Xero API error response:", r.text)
+            print("Payload sent:", json.dumps(payload, indent=2))
         return r.json()
 
 
@@ -111,28 +132,6 @@ async def post_payments(payments: list[dict[str, Any]]) -> dict[str, Any]:
                 headers=_with_tenant(_auth_headers(tok), tenant_id),
             )
         if r.status_code >= 400:
-            _raise_with_context(r)
-        return r.json()
-
-
-@retry(wait=wait_exponential_jitter(1, 3), stop=stop_after_attempt(5))
-async def post_payments(payments: List[Dict[str, Any]]) -> Dict[str, Any]:
-    tok = TokenStore.load()
-    if not tok:
-        tok = await refresh_token_if_needed()
-
-    tenant_id = await resolve_tenant_id(tok)
-    headers = _with_tenant(_auth_headers(tok), tenant_id)
-    payload = {"Payments": payments}
-
-    async with httpx.AsyncClient(timeout=60) as client:
-        r = await client.put(f"{XERO_BASE}/Payments", json=payload, headers=headers)
-        if r.status_code == 401:
-            tok = await refresh_token_if_needed()
-            tenant_id = await resolve_tenant_id(tok)
-            r = await client.put(
-                f"{XERO_BASE}/Payments", json=payload, headers=_with_tenant(_auth_headers(tok), tenant_id)
-            )
-        if r.status_code >= 400:
-            _raise_with_context(r)
+            print("Xero API error response:", r.text)
+            print("Payload sent:", json.dumps(payload, indent=2))
         return r.json()
