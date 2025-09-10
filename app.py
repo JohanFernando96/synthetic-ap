@@ -12,6 +12,7 @@ from synthap.config.settings import settings
 from synthap.xero.oauth import TokenStore
 
 
+
 def _status() -> list[tuple[str, bool]]:
     """Collect basic connectivity diagnostics."""
 
@@ -24,6 +25,7 @@ def _status() -> list[tuple[str, bool]]:
         ("OpenAI", openai_ok),
         ("Xero", xero_ok),
     ]
+
 
 
 def _last_seed() -> str | None:
@@ -39,12 +41,14 @@ def _last_seed() -> str | None:
 def main() -> None:
     st.set_page_config(page_title="Synthetic AP", layout="wide")
 
+
     if st.session_state.pop("refresh_dashboard", False):
         st.experimental_rerun()
 
     st.title("Dashboard")
 
     seed = st.session_state.pop("last_seed", None) or _last_seed()
+
     try:
         cat = load_catalogs(settings.data_dir)
         vendor_count = len(cat.vendors)
@@ -59,6 +63,7 @@ def main() -> None:
         run_count = 0
 
     st.subheader("Overview")
+
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Vendors", vendor_count)
     col2.metric("Items", item_count)
