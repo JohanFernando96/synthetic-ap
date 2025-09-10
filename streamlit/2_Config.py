@@ -5,30 +5,36 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+import pandas as pd
 import streamlit as st
 import yaml
-
 
 from synthap.config.runtime_config import (
     RuntimeConfig,
     _defaults_path,
-    _runtime_path,
     load_runtime_config,
-
     save_runtime_config,
 )
 from synthap.config.settings import settings
 
 
-
 def _load_yaml(path: Path) -> dict[str, Any]:
-
     if not path.exists():
         return {}
     with open(path, encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
 
 
+def _flatten_dict(d: dict[str, Any], parent_key: str = "", sep: str = ".") -> dict[str, Any]:
+    """Flatten nested dictionaries for tabular display."""
+    items: dict[str, Any] = {}
+    for k, v in d.items():
+        new_key = f"{parent_key}{sep}{k}" if parent_key else k
+        if isinstance(v, dict):
+            items.update(_flatten_dict(v, new_key, sep=sep))
+        else:
+            items[new_key] = v
+    return items
 def main() -> None:
     st.title("Configuration")
 
@@ -38,7 +44,11 @@ def main() -> None:
     left, right = st.columns(2)
     with left:
         st.subheader("Default configuration")
-        st.json(defaults_cfg.model_dump())
+        defaults_df = pd.DataFrame(
+            list(_flatten_dict(defaults_cfg.model_dump()).items()),
+            columns=["Setting", "Value"],
+        )
+        st.table(defaults_df)
 
     with right:
         st.subheader("Runtime configuration")
@@ -133,12 +143,9 @@ def main() -> None:
             st.success("Configuration saved")
 
         if revert_clicked:
-            _runtime_path(settings.data_dir).unlink(missing_ok=True)
-            st.warning("Runtime configuration reset")
+            save_runtime_config(defaults_cfg)
+            st.warning("Runtime configuration reset to defaults")
             st.rerun()
-
-
 
 if __name__ == "__main__":  # pragma: no cover - streamlit entry point
     main()
-

@@ -30,7 +30,6 @@ Launch the user interface with:
 poetry run streamlit run app.py
 ```
 
-
 This opens a multi-page dashboard. The main page presents overview metrics and
 connection statuses. A dedicated catalog page under `streamlit/` lists vendors,
 items and vendor‑item assignments in tabbed tables. A configuration page exposes
