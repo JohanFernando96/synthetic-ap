@@ -31,7 +31,8 @@ poetry run streamlit run app.py
 ```
 
 This opens a multi-page dashboard for exploring catalogs, tweaking
-configuration, browsing runs and generating new invoice data.
+configuration, browsing runs and generating new invoice data. Page modules
+live under the `streamlit/` directory.
 
 ## Environment variables
 
