@@ -16,7 +16,6 @@ def main() -> None:
     """Render the overview dashboard."""
     st.set_page_config(page_title="Synthetic AP", layout="wide")
 
-
     if st.session_state.pop("refresh_dashboard", False):
         st.experimental_rerun()
 
