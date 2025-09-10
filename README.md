@@ -22,6 +22,18 @@ build further analytics.
 3. (Optional) install development dependencies with
    `poetry install --with dev`.
 
+## Running the Streamlit frontend
+
+Launch the user interface with:
+
+```bash
+poetry run streamlit run app.py
+```
+
+This opens a multi-page dashboard for exploring catalogs, tweaking
+configuration, browsing runs and generating new invoice data. Page modules
+live under the `streamlit/` directory.
+
 ## Environment variables
 
 Configuration values are read from environment variables or a `.env` file.  The
