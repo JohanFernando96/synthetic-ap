@@ -1,4 +1,4 @@
-"""Dashboard page for the Streamlit UI."""
+"""Dashboard entry point for the Streamlit UI."""
 
 from __future__ import annotations
 
@@ -7,38 +7,13 @@ from pathlib import Path
 import streamlit as st
 
 from synthap.catalogs.loader import load_catalogs
-from synthap.cli import latest_run_id, runs_dir
+
+from synthap.cli import runs_dir
 from synthap.config.settings import settings
-from synthap.xero.oauth import TokenStore
-
-
-
-def _status() -> list[tuple[str, bool]]:
-    """Collect basic connectivity diagnostics."""
-
-    backend_ok = Path(settings.data_dir).exists() if settings.data_dir else False
-    openai_ok = bool(settings.openai_api_key)
-    xero_ok = TokenStore.load() is not None
-
-    return [
-        ("Backend", backend_ok),
-        ("OpenAI", openai_ok),
-        ("Xero", xero_ok),
-    ]
-
-
-
-def _last_seed() -> str | None:
-    run_id = latest_run_id()
-    if not run_id:
-        return None
-    try:
-        return run_id.split("-")[-1]
-    except Exception:  # pragma: no cover - defensive
-        return None
 
 
 def main() -> None:
+    """Render the overview dashboard."""
     st.set_page_config(page_title="Synthetic AP", layout="wide")
 
 
@@ -47,36 +22,29 @@ def main() -> None:
 
     st.title("Dashboard")
 
-    seed = st.session_state.pop("last_seed", None) or _last_seed()
+    cat = load_catalogs(settings.data_dir)
+    vendor_count = len(cat.vendors)
+    item_count = len(cat.items)
+    run_count = len([p for p in runs_dir().iterdir() if p.is_dir()])
+    last_seed = st.session_state.get("last_seed", "—")
 
-    try:
-        cat = load_catalogs(settings.data_dir)
-        vendor_count = len(cat.vendors)
-        item_count = len(cat.items)
-    except Exception:
-        vendor_count = 0
-        item_count = 0
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("Vendors", vendor_count)
+    m2.metric("Items", item_count)
+    m3.metric("Runs", run_count)
+    m4.metric("Last seed", last_seed)
 
-    try:
-        run_count = len([p for p in runs_dir().iterdir() if p.is_dir()])
-    except Exception:
-        run_count = 0
-
-    st.subheader("Overview")
-
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Vendors", vendor_count)
-    col2.metric("Items", item_count)
-    col3.metric("Runs", run_count)
-    col4.metric("Last seed", seed or "-")
-
-    st.divider()
     st.subheader("Connections")
-    status_cols = st.columns(3)
-    for col, (service, ok) in zip(status_cols, _status()):
-        col.metric(service, "✅" if ok else "❌")
+    token_file = settings.token_file or ".xero_token.json"
+    backend_ok = True  # catalogs loaded successfully
+    openai_ok = bool(settings.openai_api_key)
+    xero_ok = Path(token_file).exists()
+
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Backend", "OK" if backend_ok else "Unavailable")
+    c2.metric("OpenAI", "OK" if openai_ok else "Missing API key")
+    c3.metric("Xero", "OK" if xero_ok else "No token")
 
 
 if __name__ == "__main__":  # pragma: no cover - streamlit entry point
     main()
-

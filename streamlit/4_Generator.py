@@ -136,13 +136,13 @@ def main() -> None:
 
     st.session_state["last_seed"] = str(seed)
     st.session_state["refresh_dashboard"] = True
+    st.session_state["refresh_catalog"] = True
 
     switch_page = getattr(st, "switch_page", None)
     if switch_page:
         switch_page("app.py")
     else:  # pragma: no cover - fallback when switching pages unsupported
         st.info("Return to the dashboard to view results.")
-
 
 
 if __name__ == "__main__":  # pragma: no cover - streamlit entry point

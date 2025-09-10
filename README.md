@@ -30,9 +30,11 @@ Launch the user interface with:
 poetry run streamlit run app.py
 ```
 
-This opens a multi-page dashboard for exploring catalogs, tweaking
-configuration, browsing runs and generating new invoice data. Page modules
-live under the `streamlit/` directory.
+
+This opens a multi-page dashboard. The main page presents overview metrics and
+connection statuses. A dedicated catalog page under `streamlit/` lists vendors,
+items and vendor‑item assignments in tabbed tables, while other pages handle
+configuration editing, run browsing and data generation.
 
 ## Environment variables
 
