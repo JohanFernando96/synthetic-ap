@@ -33,7 +33,8 @@ poetry run streamlit run app.py
 This opens a multi-page dashboard. The main page presents overview metrics and
 connection statuses. A dedicated catalog page under `streamlit/` lists vendors,
 items and vendor‑item assignments in tabbed tables. A configuration page exposes
-form-based runtime settings with options to save or revert to defaults, while
+runtime settings in an editable table where only values can be changed, with
+options to save or revert to defaults, while
 other pages handle run browsing and data generation.
 
 
