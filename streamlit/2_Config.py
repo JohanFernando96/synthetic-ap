@@ -35,8 +35,6 @@ def _flatten_dict(d: dict[str, Any], parent_key: str = "", sep: str = ".") -> di
         else:
             items[new_key] = v
     return items
-
-
 def main() -> None:
     st.title("Configuration")
 
@@ -149,7 +147,5 @@ def main() -> None:
             st.warning("Runtime configuration reset to defaults")
             st.rerun()
 
-
 if __name__ == "__main__":  # pragma: no cover - streamlit entry point
     main()
-

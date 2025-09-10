@@ -36,6 +36,7 @@ items and vendor‑item assignments in tabbed tables. A configuration page expos
 form-based runtime settings with options to save or revert to defaults, while
 other pages handle run browsing and data generation.
 
+
 ## Environment variables
 
 Configuration values are read from environment variables or a `.env` file.  The
