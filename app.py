@@ -7,6 +7,7 @@ from pathlib import Path
 import streamlit as st
 
 from synthap.catalogs.loader import load_catalogs
+
 from synthap.cli import runs_dir
 from synthap.config.settings import settings
 

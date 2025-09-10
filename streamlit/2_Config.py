@@ -8,17 +8,21 @@ from typing import Any
 import streamlit as st
 import yaml
 
+
 from synthap.config.runtime_config import (
     RuntimeConfig,
     _defaults_path,
     _runtime_path,
     load_runtime_config,
+
     save_runtime_config,
 )
 from synthap.config.settings import settings
 
 
+
 def _load_yaml(path: Path) -> dict[str, Any]:
+
     if not path.exists():
         return {}
     with open(path, encoding="utf-8") as f:
@@ -132,6 +136,7 @@ def main() -> None:
             _runtime_path(settings.data_dir).unlink(missing_ok=True)
             st.warning("Runtime configuration reset")
             st.rerun()
+
 
 
 if __name__ == "__main__":  # pragma: no cover - streamlit entry point
