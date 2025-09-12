@@ -1,30 +1,36 @@
 vendors:
-  - id: "VEND-SYDSTEEL"
-    name: "Sydney Steel Suppliers"
-    xero_contact_id: "fa788d97-62b5-481b-86fa-d9d6b3b3956c"
-    is_supplier: true
-    payment_terms: { type: "DAYSAFTERBILLDATE", days: 30 }
-
-  - id: "VEND-BUILDRIGHT"
-    name: "BuildRight Cement"
-    xero_contact_id: "23cf8a54-e457-44d0-9c1d-9747d6c1cd79"
-    is_supplier: true
-    payment_terms: { type: "DAYSAFTERBILLDATE", days: 30 }
-
-  - id: "VEND-PLUMBPERFECT"
-    name: "PlumbPerfect Solutions"
-    xero_contact_id: "8bcb2728-cfe8-4391-8f40-d76ea56d4551"
-    is_supplier: true
-    payment_terms: { type: "DAYSAFTERBILLDATE", days: 30 }
-
-  - id: "VEND-ALLSITE"
-    name: "AllSite Rentals & Supplies"
-    xero_contact_id: "8c23ed17-ae6f-4893-8cd7-d757278e46cf"
-    is_supplier: true
-    payment_terms: { type: "DAYSAFTERBILLDATE", days: 30 }
-
-  - id: "VEND-SPARKY"
-    name: "Sparky Electricals"
-    xero_contact_id: "442d34ac-eba8-4297-ac05-6d5ad42cf437"
-    is_supplier: true
-    payment_terms: { type: "OFFOLLOWINGMONTH", day_of_month: 31 }
+- id: VEND-SYDSTEEL
+  name: Sydney Steel Suppliers
+  xero_contact_id: fa788d97-62b5-481b-86fa-d9d6b3b3956c
+  is_supplier: true
+  payment_terms:
+    type: DAYSAFTERBILLDATE
+    days: 30
+- id: VEND-BUILDRIGHT
+  name: BuildRight Cement
+  xero_contact_id: 23cf8a54-e457-44d0-9c1d-9747d6c1cd79
+  is_supplier: true
+  payment_terms:
+    type: DAYSAFTERBILLDATE
+    days: 30
+- id: VEND-PLUMBPERFECT
+  name: PlumbPerfect Solutions
+  xero_contact_id: 8bcb2728-cfe8-4391-8f40-d76ea56d4551
+  is_supplier: true
+  payment_terms:
+    type: DAYSAFTERBILLDATE
+    days: 30
+- id: VEND-ALLSITE
+  name: AllSite Rentals & Supplies
+  xero_contact_id: 8c23ed17-ae6f-4893-8cd7-d757278e46cf
+  is_supplier: true
+  payment_terms:
+    type: DAYSAFTERBILLDATE
+    days: 30
+- id: VEND-SPARKY
+  name: Sparky Electricals
+  xero_contact_id: 442d34ac-eba8-4297-ac05-6d5ad42cf437
+  is_supplier: true
+  payment_terms:
+    type: OFFOLLOWINGMONTH
+    day_of_month: 31

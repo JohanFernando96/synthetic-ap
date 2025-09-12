@@ -17,7 +17,7 @@ def main() -> None:
     st.set_page_config(page_title="Catalogs", layout="wide")
 
     if st.session_state.pop("refresh_catalog", False):
-        st.experimental_rerun()
+        st.rerun()
 
     st.title("Catalogs")
 

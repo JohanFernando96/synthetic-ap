@@ -7,3 +7,4 @@
 .vscode/
 /runs/
 poetry.lock
+/data/catalogs_backup

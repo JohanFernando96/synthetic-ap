@@ -10,8 +10,44 @@ class DateRange(NamedTuple):
 def _week_start(d: date) -> date:
     return d - timedelta(days=d.weekday())
 
+
+def limit_to_current_date(date_range: DateRange, today: date) -> DateRange:
+    """
+    Limits a date range to ensure no dates are beyond the current date.
+    
+    Args:
+        date_range: The original date range to limit
+        today: The current date to use as the maximum limit
+        
+    Returns:
+        A new DateRange with end date not exceeding today
+    """
+    if date_range.end > today:
+        return DateRange(
+            start=min(date_range.start, today),  # Also limit start to today if needed
+            end=today
+        )
+    return date_range
+
 def resolve_period_au(text: str, today: date) -> DateRange:
     t = text.lower().strip()
+
+    # Check for "current quarter" or "this quarter"
+    if "current quarter" in t or "this quarter" in t:
+        mth = today.month
+        if mth in (7, 8, 9):  # Q1
+            return DateRange(date(today.year, 7, 1), min(today, date(today.year, 9, 30)))
+        if mth in (10, 11, 12):  # Q2
+            return DateRange(date(today.year, 10, 1), min(today, date(today.year, 12, 31)))
+        if mth in (1, 2, 3):  # Q3
+            return DateRange(date(today.year, 1, 1), min(today, date(today.year, 3, 31)))
+        if mth in (4, 5, 6):  # Q4
+            return DateRange(date(today.year, 4, 1), min(today, date(today.year, 6, 30)))
+
+    # Check for "current month" or "this month"
+    if "current month" in t or "this month" in t:
+        from calendar import monthrange
+        return DateRange(date(today.year, today.month, 1), today)
 
     # absolute quarter: Q[1-4] YYYY (AU FY naming: Q1=Jul-Sep of that YYYY)
     m = re.search(r"\bq([1-4])\s+(\d{4})\b", t)

@@ -81,7 +81,7 @@ def main() -> None:
         if col_revert.button("Revert to defaults"):
             save_runtime_config(defaults_cfg)
             st.warning("Runtime configuration reset to defaults")
-            st.experimental_rerun()
+            st.rerun()
 
 
 if __name__ == "__main__":  # pragma: no cover - streamlit entry point

@@ -1,16 +1,23 @@
 vendor_items:
-  - vendor_id: "VEND-ALLSITE"
-    item_codes: ["ASR-EXC","ASR-FENCE","ASR-SCAF","ASR-WATER"]
-
-  - vendor_id: "VEND-BUILDRIGHT"
-    item_codes: ["BC-050","BC-PUMP"]
-
-  - vendor_id: "VEND-PLUMBPERFECT"
-    item_codes: ["PP-LAB","PP-PIPE"]
-
-  - vendor_id: "VEND-SPARKY"
-    item_codes: ["SE-LAB","SE-FIT"]
-
-  - vendor_id: "VEND-SYDSTEEL"
-    item_codes: ["SS-100","SS-250"]
-
+- vendor_id: VEND-ALLSITE
+  item_codes:
+  - ASR-EXC
+  - ASR-FENCE
+  - ASR-SCAF
+  - ASR-WATER
+- vendor_id: VEND-BUILDRIGHT
+  item_codes:
+  - BC-050
+  - BC-PUMP
+- vendor_id: VEND-PLUMBPERFECT
+  item_codes:
+  - PP-LAB
+  - PP-PIPE
+- vendor_id: VEND-SPARKY
+  item_codes:
+  - SE-LAB
+  - SE-FIT
+- vendor_id: VEND-SYDSTEEL
+  item_codes:
+  - SS-100
+  - SS-250

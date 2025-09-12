@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import random
+import copy
+import uuid
 from dataclasses import dataclass
 from datetime import date, timedelta
 from decimal import ROUND_HALF_UP, Decimal
@@ -53,11 +55,89 @@ def _qty_for_item(code: str, rng: random.Random) -> int:
     return rng.randint(1, 12)
 
 
-def _items_for_vendor(cat: Catalogs, vendor: Vendor) -> list[Item]:
-    codes = cat.vendor_items.get(vendor.id, [])
-    by_code = {i.code: i for i in cat.items}
-    items = [by_code[c] for c in codes if c in by_code]
-    return items if items else cat.items  # fallback
+def _create_vendor_specific_item(base_item: Item, vendor: Vendor, set_num: int, item_index: int) -> Item:
+    """
+    Create a completely new item specific to this vendor.
+    
+    Args:
+        base_item: Original item to use as a template
+        vendor: The vendor this item belongs to
+        set_num: The set number (1, 2, or 3)
+        item_index: The position within the set (1-4)
+    """
+    # Create a new unique item ID
+    new_id = str(uuid.uuid4())
+    
+    # Create vendor-specific item code
+    vendor_num = vendor.id.replace("VEND-", "")
+    new_code = f"V{vendor_num}-S{set_num}-{item_index:02d}"
+    
+    # Create a new name with vendor specificity
+    new_name = f"{base_item.name} - {vendor.name} Specific"
+    
+    # Create the new item
+    return Item(
+        id=new_id,
+        code=new_code,
+        name=new_name,
+        unit_price=base_item.unit_price,
+        account_code=base_item.account_code,
+        tax_code=base_item.tax_code,
+        price_variance_pct=base_item.price_variance_pct
+    )
+
+
+def _generate_unique_items_for_vendor(cat: Catalogs, vendor: Vendor, rng: random.Random) -> list[Item]:
+    """
+    Generate 3 sets of 4 unique items for each vendor (total 12 unique items per vendor).
+    
+    Args:
+        cat: The catalog with base items
+        vendor: The vendor to create items for
+        rng: Random number generator for consistent results
+        
+    Returns:
+        List of 12 unique vendor-specific items
+    """
+    # Get all available items to use as templates
+    all_items = cat.items
+    
+    # Shuffle the items to get different base items for each vendor
+    shuffled_items = all_items.copy()
+    rng.shuffle(shuffled_items)
+    
+    # We'll create 3 sets of 4 items (12 total)
+    unique_vendor_items = []
+    
+    # Create each set
+    for set_num in range(1, 4):  # 3 sets (1, 2, 3)
+        # For each set, select 4 different base items as templates
+        base_items = shuffled_items[(set_num-1)*4:set_num*4]
+        
+        # If we don't have enough items, cycle through what we have
+        if len(base_items) < 4:
+            while len(base_items) < 4:
+                base_items.append(shuffled_items[rng.randint(0, len(shuffled_items)-1)])
+        
+        # Create 4 unique items for this set
+        for i, base_item in enumerate(base_items, 1):
+            vendor_item = _create_vendor_specific_item(base_item, vendor, set_num, i)
+            unique_vendor_items.append(vendor_item)
+    
+    return unique_vendor_items
+
+
+def _items_for_vendor(cat: Catalogs, vendor: Vendor, seed: int = None) -> list[Item]:
+    """Get vendor-specific items, ensuring each vendor has unique items."""
+    # Create a random generator with the vendor ID as seed for consistency
+    if seed is None:
+        # Use vendor ID as seed for consistency
+        seed = int(vendor.id.replace("VEND-", ""))
+    
+    rng = random.Random(seed)
+    
+    # Generate 3 sets of 4 unique items for this vendor
+    return _generate_unique_items_for_vendor(cat, vendor, rng)
 
 
 def _pick_lines(items: list[Item], vp: VendorPlan, rng: random.Random) -> list[Item]:
@@ -109,7 +189,8 @@ def generate_from_plan(
             continue
         vendor = vendors_by_id[vp.vendor_id]
         if vendor.id not in items_by_vendor_cache:
-            items_by_vendor_cache[vendor.id] = _items_for_vendor(cat, vendor)
+            # Pass the global seed to ensure different vendors get different items
+            items_by_vendor_cache[vendor.id] = _items_for_vendor(cat, vendor, seed + int(vendor.id.replace("VEND-", "")))
         vend_items = items_by_vendor_cache[vendor.id]
 
         for _ in range(vp.count):

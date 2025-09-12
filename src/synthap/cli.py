@@ -28,22 +28,14 @@ from .nlp.parser import parse_nlp_to_query
 from .reports.report import write_json
 
 # Xero (OAuth + client)
-from .xero.client import post_invoices, post_payments, resolve_tenant_id
+from .xero.client import post_invoices, post_payments, resolve_tenant_id, debug_token
 from .xero.mapper import map_invoice
-from .xero.oauth import TokenStore
+from .xero.oauth import TokenStore, check_scopes, build_authorize_url
+
+from .paths import latest_run_id
+from .logs import log_error, log_xero
 
 app = typer.Typer(add_completion=False)
-
-
-def runs_dir() -> Path:
-    p = Path(settings.runs_dir)
-    p.mkdir(parents=True, exist_ok=True)
-    return p
-
-
-def latest_run_id() -> Optional[str]:
-    candidates = [p.name for p in runs_dir().iterdir() if p.is_dir()]
-    return sorted(candidates)[-1] if candidates else None
 
 
 @app.command("xero-status")
@@ -57,6 +49,22 @@ def xero_status():
         try:
             t, _ = await resolve_tenant_id(tok)
             typer.echo(f"Resolved tenantId: {t}")
+            
+            # Add debug info
+            if 'tenant_id' in tok:
+                typer.echo(f"Token has tenant_id: {tok['tenant_id']}")
+            if 'access_token' in tok:
+                typer.echo(f"Token has access_token: {tok['access_token'][:10]}...")
+            if 'refresh_token' in tok:
+                typer.echo(f"Token has refresh_token: {tok['refresh_token'][:10]}...")
+                
+            # Check scopes
+            scope_status = check_scopes()
+            typer.echo("\nXero API Scope Status:")
+            for scope, has_scope in scope_status.items():
+                status = "✓" if has_scope else "✗"
+                typer.echo(f"{status} {scope}")
+                
         except Exception as e:
             typer.echo(f"Failed to resolve tenantId: {e}")
 
@@ -70,6 +78,58 @@ def auth_init():
     typer.echo("Starting local OAuth callback server...")
     typer.echo("Visit http://localhost:5050/ to see the authorize URL.")
     auth_server_run()
+
+
+@app.command("xero-reauth")
+def xero_reauth():
+    """Force Xero reauthorization by clearing the token."""
+    TokenStore.clear()
+    typer.echo("Xero token cleared. Run 'auth-init' to reauthorize.")
+    typer.echo(f"Authorization URL: {build_authorize_url()}")
+
+
+@app.command("xero-debug")
+def xero_debug():
+    """Debug Xero authentication issues."""
+    tok = TokenStore.load()
+    if not tok:
+        typer.echo("No token found. Run `auth-init` and consent.")
+        raise typer.Exit(code=1)
+    
+    typer.echo("--- Token Information ---")
+    typer.echo(f"Token file: {settings.token_file}")
+    typer.echo(f"Token keys: {list(tok.keys())}")
+    
+    if 'tenant_id' in tok:
+        typer.echo(f"Tenant ID: {tok['tenant_id']}")
+    else:
+        typer.echo("No tenant_id in token!")
+        
+    if 'access_token' in tok:
+        typer.echo(f"Access token (first 10 chars): {tok['access_token'][:10]}...")
+        typer.echo(f"Access token expiry: {tok.get('expires_at', 'unknown')}")
+    else:
+        typer.echo("No access_token in token!")
+    
+    # Check scopes
+    typer.echo("\n--- Xero API Scope Status ---")
+    scope_status = check_scopes()
+    for scope, has_scope in scope_status.items():
+        status = "✓" if has_scope else "✗"
+        typer.echo(f"{status} {scope}")
+    
+    # Settings check
+    typer.echo("\n--- Xero API Settings ---")
+    typer.echo(f"Client ID: {settings.xero_client_id[:5]}..." if settings.xero_client_id else "No client ID!")
+    typer.echo(f"Redirect URI: {settings.xero_redirect_uri}" if settings.xero_redirect_uri else "No redirect URI!")
+    typer.echo(f"Scopes: {settings.xero_scopes}" if settings.xero_scopes else "No scopes configured!")
+    
+    # Print debug info and reauth instructions
+    typer.echo("\n--- Instructions ---")
+    typer.echo("If you're having authentication issues, try:")
+    typer.echo("1. Run 'xero-reauth' to clear the token")
+    typer.echo("2. Run 'auth-init' to get a new token")
+    typer.echo("3. Check your app's scopes in the Xero developer portal")
 
 
 @app.command("generate")
@@ -91,6 +151,11 @@ def generate(
         "--price-variance-pct",
         help="Override price variance percentage (e.g., 0.05 for ±5%)",
     ),
+    limit_to_current: bool = typer.Option(
+        False,
+        "--limit-to-current/--no-limit",
+        help="Limit generation to current date (prevents future dates)",
+    ),
 ):
     """
     AI Plan -> sanitize -> generate -> validate -> stage (no Xero insert).
@@ -102,17 +167,19 @@ def generate(
       - runs/<run_id>/generation_report.json
     """
     from .ai.planner import plan_from_query
-    from .ai.schema import Plan as AIPlan
+    from .ai.schema import Plan as AIPlan, DateRange
+    from .nlp.periods import limit_date_range
 
     cat = load_catalogs(settings.data_dir)
     cfg = load_runtime_config(settings.data_dir)
+    today = date.today()
 
     if seed is None:
         seed = secrets.randbits(32)
 
     # 1) AI plan (with built-in guardrails + AU fiscal periods)
-    plan: AIPlan = plan_from_query(query, cat, today=date.today())
-    parsed_query = parse_nlp_to_query(query, today=date.today(), catalogs=cat, use_llm=True)
+    plan: AIPlan = plan_from_query(query, cat, today=today)
+    parsed_query = parse_nlp_to_query(query, today=today, catalogs=cat, use_llm=True)
 
     # Apply CLI overrides (final say)
     if allow_price_variation is not None:
@@ -120,11 +187,19 @@ def generate(
     if price_variation_pct is not None:
         plan.price_variation_pct = float(price_variation_pct)
 
+    # Apply time limit if enabled
+    if limit_to_current:
+        original_range = plan.date_range
+        new_range = limit_date_range(original_range, today)
+        if new_range != original_range:
+            typer.echo(f"Date range limited from {original_range.start}-{original_range.end} to {new_range.start}-{new_range.end}")
+            plan.date_range = DateRange(start=new_range.start, end=new_range.end)
+
     # Hard guardrails for Stage-1 scope
     plan.status = "AUTHORISED"
     plan.currency = "AUD"
 
-    run_id = slugify(f"{date.today().isoformat()}-{seed}")[:24]
+    run_id = slugify(f"{today.isoformat()}-{seed}")[:24]
 
     # 2) Generate from plan
     invoices = generate_from_plan(
@@ -369,5 +444,79 @@ def insert(
     asyncio.run(_insert())
 
 
+@app.command("generate-synthetic-data")
+def generate_synthetic_data(
+    industry: str = typer.Option(..., "--industry", "-i", help="Industry for synthetic contacts"),
+    num_contacts: int = typer.Option(5, "--num-contacts", "-n", help="Number of contacts to generate"),
+    items_per_vendor: int = typer.Option(2, "--items-per-vendor", "-ipv", help="Number of items per vendor"),
+    override_existing: bool = typer.Option(False, "--override-existing", help="Override existing data instead of appending"),
+):
+    """
+    Generate synthetic contacts and items for Australian businesses.
+    Updates catalog YAML files with new data.
+    """
+    from .ai.schema import SyntheticContactRequest
+    from .ai.synthgen import preview_synthetic_data, apply_synthetic_data
+    from .catalogs.manager import backup_catalogs
+    
+    # Create a backup before generation
+    backup_reason = f"before_{industry.lower()}_data_generation"
+    backup_path = backup_catalogs(reason=backup_reason)
+    typer.echo(f"Created backup at: {backup_path}")
+    
+    request = SyntheticContactRequest(
+        industry=industry,
+        num_contacts=num_contacts,
+        items_per_vendor=items_per_vendor
+    )
+    
+    typer.echo(f"Generating {num_contacts} synthetic contacts for {industry} industry with {items_per_vendor} items per vendor...")
+    
+    async def _run():
+        try:
+            # First preview the data
+            typer.echo("Generating preview data...")
+            preview_data = await preview_synthetic_data(request)
+            
+            typer.echo(f"Preview generated with {len(preview_data['contacts'])} contacts and {len(preview_data['items'])} items.")
+            
+            # Confirm application
+            typer.echo("Applying changes and updating Xero...")
+            result = await apply_synthetic_data(preview_data, override_existing=override_existing)
+            
+            if result.get("success"):
+                typer.echo("✓ Successfully generated synthetic data:")
+                for step in result.get("steps", []):
+                    status = "✓" if step.get("status") == "complete" else "✗"
+                    typer.echo(f"{status} {step.get('name')}")
+                    
+                typer.echo(f"Contacts created: {result.get('contacts_created', 0)}")
+                typer.echo(f"Items created: {result.get('items_created', 0)}")
+                typer.echo(f"Vendor-item relationships created: {result.get('vendor_items_created', 0)}")
+            else:
+                typer.echo("✗ Data generation failed")
+                if "error" in result:
+                    typer.echo(f"Error: {result['error']}")
+                typer.echo("Process Steps:")
+                for step in result.get("steps", []):
+                    status = "✓" if step.get("status") == "complete" else "✗"
+                    typer.echo(f"{status} {step.get('name')}")
+                    if step.get("status") == "error" and "error" in step:
+                        typer.echo(f"  Error: {step['error']}")
+                
+        except Exception as e:
+            typer.echo(f"Error generating synthetic data: {str(e)}")
+            raise
+    
+    asyncio.run(_run())
+
+
+def runs_dir() -> Path:
+    """Resolved run directory path."""
+    return Path(settings.runs_dir)
+
+
 if __name__ == "__main__":
     app()
+
+    

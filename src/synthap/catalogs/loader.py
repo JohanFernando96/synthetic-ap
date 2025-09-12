@@ -6,7 +6,7 @@ from typing import List, Dict, Any, Optional
 class Vendor(BaseModel):
     id: str
     name: str
-    xero_contact_id: str
+    xero_contact_id: str | None = None  # Make it optional with None as default
     xero_account_number: str | None = None
     is_supplier: bool = True
     payment_terms: Dict[str, Any]

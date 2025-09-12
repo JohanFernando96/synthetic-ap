@@ -47,3 +47,29 @@ class Plan(BaseModel):
             self.vendor_mix[0].count += diff
             if self.vendor_mix[0].count < 0:
                 self.vendor_mix[0].count = 0
+
+class SyntheticContactRequest(BaseModel):
+    industry: str
+    num_contacts: int
+    items_per_vendor: int = 2
+
+class SyntheticContactData(BaseModel):
+    id: str  # Generated vendor ID
+    name: str
+    is_supplier: bool = True
+    payment_terms: dict = Field(default_factory=lambda: {"type": "DAYSAFTERBILLDATE", "days": 30})
+    xero_contact_id: Optional[str] = None  # Will be populated after Xero API call
+    xero_account_number: Optional[str] = None
+
+class SyntheticItemData(BaseModel):
+    id: str  # Generated UUID
+    code: str
+    name: str
+    unit_price: float
+    account_code: str = "453"  # Default account code for inventory
+    tax_code: str = "INPUT"
+    price_variance_pct: float = 0.10
+
+class SyntheticVendorItemRelation(BaseModel):
+    vendor_id: str
+    item_codes: List[str]

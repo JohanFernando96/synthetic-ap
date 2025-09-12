@@ -8,7 +8,7 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-from synthap.cli import runs_dir
+from synthap import runs_dir
 
 
 def _available_runs() -> list[str]:
